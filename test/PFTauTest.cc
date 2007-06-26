@@ -72,6 +72,8 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"InvariantMass of the Tau "<<iT->getInvariantMass()<<endl;
       cout<<"Vertex of the Tau "<<iT->vz()<<endl;
       cout<<"Charge of the Tau "<<iT->charge()<<endl;
+      cout<<"Em Over Hadron energy "<<iT->getEmOverHadronEnergy()<<endl;
+      cout<<"Max Hadron energy "<<iT->getMaximumHcalTowerEnergy()<<endl;
       cout<<"# PF charged hadr. cand's "<<iT->getSelectedChargedHadrons().size()<<endl;
       cout<<"# PF neutral hadr. cand's "<<iT->getSelectedNeutralHadrons().size()<<endl;
       cout<<"# PF gamma cand's "<<iT->getSelectedGammaCandidates().size()<<endl;
