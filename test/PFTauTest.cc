@@ -85,8 +85,8 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 	cout<<"Number of IsolationPFChargedHadrons = "<<iT->getIsolationChargedHadrons().size()<<endl;
 	cout<<"Number of SignalPFGammaCandidate = "<<iT->getSignalGammaCandidates().size()<<endl;
 	cout<<"Number of IsolationPFGammaCandidate = "<<iT->getIsolationGammaCandidates().size()<<endl;
-	cout<<"Sum pT of Isolation Charged Hadrons = "<<iT->getSumPtIsolation();
-	cout<<"Sum E_T of Isolation Gamma Candidates = "<<iT->getEMIsolation();
+	cout<<"Sum pT of Isolation Charged Hadrons = "<<iT->getSumPtIsolation()<<endl;
+	cout<<"Sum E_T of Isolation Gamma Candidates = "<<iT->getEMIsolation()<<endl;
 	
       }
     }    
