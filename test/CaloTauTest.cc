@@ -77,8 +77,8 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 	cout<<"InvariantMass of the Tau "<<iT->getInvariantMass()<<endl;
 	cout<<"Vertex of the Tau "<<iT->vz()<<endl;
 	cout<<"Charge of the Tau "<<iT->charge()<<endl;
-	cout<<"Em Over Hadron energy "<<iT->getEmOverChargedEnergy()<<endl;
-	cout<<"Max Hadron energy "<<iT->getMaximumHcalTowerEnergy()<<endl;
+	cout<<"Em energy fraction "<<iT->getEmEnergyFraction()<<endl;
+	cout<<"Max Hadron energy "<<iT->getMaximumHcalEnergy()<<endl;
 	cout<<"# Tracks "<<iT->getSelectedTracks().size()<<endl;
 	cout<<"Number of Signal Tracks = "<<iT->getSignalTracks().size()<<endl;
 	cout<<"Number of Isolation Tracks = "<<iT->getIsolationTracks().size()<<endl;
