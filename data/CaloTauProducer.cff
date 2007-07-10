@@ -1,0 +1,29 @@
+#Combined Tau Tag
+include "RecoTauTag/CombinedTauTag/data/combinedTauTag.cfi"
+
+
+
+
+### Begin of DB config #######################################################
+include "CondCore/DBCommon/data/CondDBCommon.cfi"
+
+#replace CondDBCommon.connect = "sqlite_file:tautagnew1.db"  
+#replace CondDBCommon.catalog = "file:mycatalog.xml"
+replace CondDBCommon.connect = "oracle://cms_orcoff_int2r/CMS_COND_BTAU"    
+replace CondDBCommon.catalog = "relationalcatalog_oracle://cms_orcoff_int2r/CMS_COND_GENERAL"            
+  
+replace CondDBCommon.DBParameters.messageLevel = 3
+replace CondDBCommon.DBParameters.authenticationPath = "/afs/cern.ch/cms/DB/conddb"
+es_source = PoolDBESSource { 
+  using CondDBCommon
+  VPSet toGet = { { string record = "CombinedTauTagRcd" string tag = "combinedtautag_likelihoodratioPDFs_0" } }
+}
+module get = EventSetupRecordDataGetter { 
+  VPSet toGet = { { string record = "CombinedTauTagRcd" vstring data = {"CombinedTauTagCalibration"} } }
+  untracked bool verbose = true 
+}
+##### End of DB config #######################################################
+
+include "RecoTauTag/RecoTau/data/tauCaloProducer.cfi"
+
+sequence CaloTau = {combinedTauTag,caloTau}

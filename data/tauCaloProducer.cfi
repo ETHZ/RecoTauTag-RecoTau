@@ -1,0 +1,15 @@
+module tauCaloProducer =  CaloRecoTauProducer{
+	InputTag CombinedTauTagInfo = combinedTauTag
+	double LeadTrack_minPt = 6.0
+	double Tracks_minPt = 1.0
+	double MatchingConeSize = 0.1
+	double TrackerSignalConeSize = 0.1
+	bool UseTrackerSignalConeVariableSize = false
+	double TrackerSignalConeVariableSize_Parameter = 3.5
+	double TrackerSignalConeVariableSize_max = 0.1
+	double TrackerSignalConeVariableSize_min = 0.05
+	double TrackerIsolConeSize = 0.5
+	double ECALSignalConeSize = 0.5
+	double ECALIsolConeSize =0.13
+	double JetPtMin = 15.       
+    }
