@@ -9,7 +9,7 @@
         double TrackerSignalConeVariableSize_max = 0.1
         double TrackerSignalConeVariableSize_min = 0.05
         double TrackerIsolConeSize = 0.5
-        double ECALSignalConeSize = 0.5
-        double ECALIsolConeSize =0.13
+        double ECALSignalConeSize = 0.13
+        double ECALIsolConeSize =0.5
         double JetPtMin = 15.
     }
