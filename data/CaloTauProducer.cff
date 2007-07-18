@@ -12,7 +12,6 @@ include "CondCore/DBCommon/data/CondDBCommon.cfi"
 replace CondDBCommon.connect = "oracle://cms_orcoff_int2r/CMS_COND_BTAU"    
 replace CondDBCommon.catalog = "relationalcatalog_oracle://cms_orcoff_int2r/CMS_COND_GENERAL"            
   
-replace CondDBCommon.DBParameters.messageLevel = 3
 replace CondDBCommon.DBParameters.authenticationPath = "/afs/cern.ch/cms/DB/conddb"
 es_source = PoolDBESSource { 
   using CondDBCommon
