@@ -63,30 +63,28 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   cout<<"***"<<endl;
   cout<<"Found "<<myTauCollection.size()<<" had. tau-jet candidates"<<endl;
   int it=0;
-  for(TauCollection::const_iterator iT =myTauCollection.begin();iT !=myTauCollection.end();iT++)
-    {  
-      //Prints out some quantities
-      cout<<"Jet Number "<<it<<endl;
-      it++;
-      cout<<"Pt of the Tau "<<iT->pt()<<endl;
-      TrackRef theLeadTk = iT->getLeadingTrack();
-      if(!theLeadTk) {
-	cout<<"No Lead Tk "<<endl;
-      }else{
-	cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
-	cout<<"InvariantMass of the Tau "<<iT->getInvariantMass()<<endl;
-	cout<<"Vertex of the Tau "<<iT->vz()<<endl;
-	cout<<"Charge of the Tau "<<iT->charge()<<endl;
-	cout<<"Em energy fraction "<<iT->getEmEnergyFraction()<<endl;
-	cout<<"Max Hadron energy "<<iT->getMaximumHcalEnergy()<<endl;
-	cout<<"# Tracks "<<iT->getSelectedTracks().size()<<endl;
-	cout<<"Number of Signal Tracks = "<<iT->getSignalTracks().size()<<endl;
-	cout<<"Number of Isolation Tracks = "<<iT->getIsolationTracks().size()<<endl;
-	cout<<"Sum pT of Isolation Tracks = "<<iT->getSumPtIsolation()<<endl;
-	//	cout<<"Sum E_T of Isolation Gamma Candidates = "<<iT->getEMIsolation()<<endl;
-	
-      }
-    }    
+  for(TauCollection::const_iterator iT =myTauCollection.begin();iT !=myTauCollection.end();iT++){  
+    //Prints out some quantities
+    cout<<"Jet Number "<<it<<endl;
+    cout<<"Pt of the Tau "<<iT->pt()<<endl;
+    TrackRef theLeadTk = iT->getleadTrack();
+    if(!theLeadTk) {
+      cout<<"No Lead Tk "<<endl;
+    }else{
+      cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
+      cout<<"InvariantMass of the Tau "<<iT->getInvariantMass()<<endl;
+      cout<<"Vertex of the Tau "<<iT->vz()<<endl;
+      cout<<"Charge of the Tau "<<iT->charge()<<endl;
+      cout<<"Em energy fraction "<<iT->getEmEnergyFraction()<<endl;
+      cout<<"Max Hadron energy "<<iT->getMaximumHcalEnergy()<<endl;
+      cout<<"# Tracks "<<iT->getSelectedTracks().size()<<endl;
+      cout<<"Number of Signal Tracks = "<<iT->getSignalTracks().size()<<endl;
+      cout<<"Number of Isolation Tracks = "<<iT->getIsolationTracks().size()<<endl;
+      cout<<"Sum pT of Isolation Tracks = "<<iT->getSumPtIsolation()<<endl;
+      //	cout<<"Sum E_T of Isolation Gamma Candidates = "<<iT->getEMIsolation()<<endl;    
+    }
+    it++;    
+  }    
 }
 void CaloTauTest::endJob() { }
 
