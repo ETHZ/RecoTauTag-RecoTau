@@ -3,7 +3,9 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 #include "DataFormats/TauReco/interface/Tau.h"
+#include "DataFormats/TauReco/interface/TauDiscriminatorByIsolation.h"
 
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
@@ -31,6 +33,7 @@ public:
   virtual void endJob();
 private:
   string PFTaus_;
+  string TauDiscriminatorByIsolationProducer_;
   int nEvent;
   vector<float> nEventsUsed;
   vector<float> nEventsRiso;
@@ -38,7 +41,8 @@ private:
 };
 
 PFTauTest::PFTauTest(const ParameterSet& iConfig){
-  PFTaus_        = iConfig.getParameter<string>("PFTaus");
+  PFTaus_                              = iConfig.getParameter<string>("PFTaus");
+  TauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("TauDiscriminatorByIsolationProducer");
   nEvent=0;
   nEventTaggedJets=0;
   nEventsRiso.reserve(6);
@@ -52,7 +56,6 @@ PFTauTest::PFTauTest(const ParameterSet& iConfig){
 void PFTauTest::beginJob(){}
 
 void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
-  cout<<endl;
   cout<<"********"<<endl;
   cout<<"Event number "<<nEvent++<<endl;
   
@@ -60,39 +63,43 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   iEvent.getByLabel(PFTaus_,tauHandle);
   const TauCollection& myTauCollection=*(tauHandle.product()); 
 
+  Handle<TauDiscriminatorByIsolation> theTauDiscriminatorByIsolation;
+  iEvent.getByLabel(TauDiscriminatorByIsolationProducer_,theTauDiscriminatorByIsolation);
+
   cout<<"***"<<endl;
   cout<<"Found "<<myTauCollection.size()<<" had. tau-jet candidates"<<endl;
-  int it=0;
-  for(TauCollection::const_iterator iT =myTauCollection.begin();iT !=myTauCollection.end();iT++)
-    {  
-      //Prints out some quantities
-      cout<<"Jet Number "<<it<<endl;
-      it++;
-      cout<<"Pt of the Tau "<<iT->pt()<<endl;
-      PFCandidateRef theLeadPFCand = iT->getLeadingChargedHadron();
-      if(!theLeadPFCand) {
-	cout<<"No Lead PFCand "<<endl;
-      }else{
-	cout<<"Lead PFCand pt "<<(*theLeadPFCand).pt()<<endl;
-	cout<<"InvariantMass of the Tau "<<iT->getInvariantMass()<<endl;
-	cout<<"Vertex of the Tau "<<iT->vz()<<endl;
-	cout<<"Charge of the Tau "<<iT->charge()<<endl;
-	cout<<"Em energy fraction "<<iT->getEmEnergyFraction()<<endl;
-	cout<<"Max Hadron energy "<<iT->getMaximumHcalEnergy()<<endl;
-	cout<<"# PF charged hadr. cand's "<<iT->getSelectedChargedHadrons().size()<<endl;
-	cout<<"# PF neutral hadr. cand's "<<iT->getSelectedNeutralHadrons().size()<<endl;
-	cout<<"# PF gamma cand's "<<iT->getSelectedGammaCandidates().size()<<endl;
-	cout<<"Number of SignalPFChargedHadrons = "<<iT->getSignalChargedHadrons().size()<<endl;
-	cout<<"Number of IsolationPFChargedHadrons = "<<iT->getIsolationChargedHadrons().size()<<endl;
-	cout<<"Number of SignalPFGammaCandidate = "<<iT->getSignalGammaCandidates().size()<<endl;
-	cout<<"Number of IsolationPFGammaCandidate = "<<iT->getIsolationGammaCandidates().size()<<endl;
-	cout<<"Sum pT of Isolation Charged Hadrons = "<<iT->getSumPtIsolation()<<endl;
-	cout<<"Sum E_T of Isolation Gamma Candidates = "<<iT->getEMIsolation()<<endl;
-	
-      }
-    }    
+  int i_Tau=0;
+  //for(TauCollection::const_iterator iT =myTauCollection.begin();iT !=myTauCollection.end();iT++){  
+  for (TauCollection::size_type iTau=0;iTau<tauHandle->size();iTau++) {
+    TauRef theTau(tauHandle,iTau);
+    //Prints out some quantities
+    cout<<"Jet Number "<<i_Tau<<endl;
+    cout<<"DiscriminatorByIsolation value "<<(*theTauDiscriminatorByIsolation)[theTau]<<endl;
+    cout<<"Pt of the Tau "<<(*theTau).pt()<<endl;
+    PFCandidateRef theLeadPFCand = (*theTau).getleadPFChargedHadrCand();
+    if(!theLeadPFCand){
+      cout<<"No Lead PFCand "<<endl;
+    }else{
+      cout<<"Lead PFCand pt "<<(*theLeadPFCand).pt()<<endl;
+      cout<<"InvariantMass of the Tau "<<(*theTau).getInvariantMass()<<endl;
+      cout<<"Vertex of the Tau "<<(*theTau).vz()<<endl;
+      cout<<"Charge of the Tau "<<(*theTau).charge()<<endl;
+      cout<<"Em energy fraction "<<(*theTau).getEmEnergyFraction()<<endl;
+      cout<<"Max Hadron energy "<<(*theTau).getMaximumHcalEnergy()<<endl;
+      cout<<"# PF charged hadr. cand's "<<(*theTau).getSelectedPFChargedHadrCands().size()<<endl;
+      cout<<"# PF neutral hadr. cand's "<<(*theTau).getSelectedPFNeutrHadrCands().size()<<endl;
+      cout<<"# PF gamma cand's "<<(*theTau).getSelectedPFGammaCands().size()<<endl;
+      cout<<"Number of SignalPFChargedHadrCands = "<<(*theTau).getSignalPFChargedHadrCands().size()<<endl;
+      cout<<"Number of IsolationPFChargedHadrCands = "<<(*theTau).getIsolationPFChargedHadrCands().size()<<endl;
+      cout<<"Number of SignalPFGammaCands = "<<(*theTau).getSignalPFGammaCands().size()<<endl;
+      cout<<"Number of IsolationPFGammaCands = "<<(*theTau).getIsolationPFGammaCands().size()<<endl;
+      cout<<"Sum pT of IsolationPFChargedHadrCands  = "<<(*theTau).getSumPtIsolation()<<endl;
+      cout<<"Sum ET of IsolationPFGammaCands = "<<(*theTau).getEMIsolation()<<endl;	
+    }
+    i_Tau++;    
+  }    
 }
-void PFTauTest::endJob() { }
+void PFTauTest::endJob(){}
 
 DEFINE_SEAL_MODULE();
 DEFINE_ANOTHER_FWK_MODULE(PFTauTest);
