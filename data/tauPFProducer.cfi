@@ -1,15 +1,50 @@
-  module tauPFProducer = PFRecoTauProducer{
-        InputTag PFTagInfo = pfConeIsolation
-        double LeadCand_minPt = 6.0
-        double Cand_minPt = 1.0
-        double MatchingConeSize = 0.1
-        double TrackerSignalConeSize = 0.1
-        bool UseTrackerSignalConeVariableSize = false
-        double TrackerSignalConeVariableSize_Parameter = 3.5
-        double TrackerSignalConeVariableSize_max = 0.1
-        double TrackerSignalConeVariableSize_min = 0.05
-        double TrackerIsolConeSize = 0.5
-        double ECALSignalConeSize = 0.13
-        double ECALIsolConeSize =0.5
-        double JetPtMin = 15.
-    }
+module tauPFProducer = PFRecoTauProducer{
+  InputTag PFTagInfo                           = pfConeIsolation
+  #string PVProducer                            = "offlinePrimaryVerticesFromCTFTracks"  # ***    
+  string PVProducer                            = "pixelVertices"  # ***  
+  double JetPtMin                              = 15.
+  double LeadChargedHadrCand_minPt             = 6.
+  double ChargedHadrCand_minPt                 = 1.
+  double NeutrHadrCand_minPt                   = 1.
+  double GammaCand_minPt                       = 1.    
+  double LeadTrack_minPt                       = 6.
+  double Track_minPt                           = 1.
+     
+  string MatchingConeMetric                    = "DR"  # * 
+  string MatchingConeSizeFormula               = "0.10"  # **  
+  double MatchingConeVariableSize_min          = 0.10
+  double MatchingConeVariableSize_max          = 0.10 
+  string TrackerSignalConeMetric               = "DR"  # * 
+  string TrackerSignalConeSizeFormula          = "0.10" 
+  double TrackerSignalConeVariableSize_min     = 0.10
+  double TrackerSignalConeVariableSize_max     = 0.10 
+  string TrackerIsolConeMetric                 = "DR"  # * 
+  string TrackerIsolConeSizeFormula            = "0.50"  # **  
+  double TrackerIsolConeVariableSize_min       = 0.50
+  double TrackerIsolConeVariableSize_max       = 0.50
+  string ECALSignalConeMetric                  = "DR"  # * 
+  string ECALSignalConeSizeFormula             = "0.15"  # **       
+  double ECALSignalConeVariableSize_min        = 0.15
+  double ECALSignalConeVariableSize_max        = 0.15
+  string ECALIsolConeMetric                    = "DR"  # *  
+  string ECALIsolConeSizeFormula               = "0.50"  # **         
+  double ECALIsolConeVariableSize_min          = 0.50
+  double ECALIsolConeVariableSize_max          = 0.50
+  string HCALSignalConeMetric                  = "DR"  # *  
+  string HCALSignalConeSizeFormula             = "0.10"     
+  double HCALSignalConeVariableSize_min        = 0.10
+  double HCALSignalConeVariableSize_max        = 0.10
+  string HCALIsolConeMetric                    = "DR"  # *  
+  string HCALIsolConeSizeFormula               = "0.50"  # **        
+  double HCALIsolConeVariableSize_min          = 0.50
+  double HCALIsolConeVariableSize_max          = 0.50
+      
+  double AreaMetric_recoElements_maxabsEta     = 2.5 
+
+  # * possible metrics : "DR", "angle", "area";
+  #   if the "area" metric is chosen, AreaMetric_recoElements_maxabsEta parameter is considered;   
+
+  # ** may depend on E(energy) and/or ET(transverse energy) of the initial PFJet, ex. : "3.0/E";    
+
+  # *** a PV is needed for computing a leading (charged hadron PFCand) rec. tk signed transverse impact parameter. 
+}
