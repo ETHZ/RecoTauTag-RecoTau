@@ -69,7 +69,6 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   cout<<"***"<<endl;
   cout<<"Found "<<myTauCollection.size()<<" had. tau-jet candidates"<<endl;
   int i_Tau=0;
-  //for(TauCollection::const_iterator iT =myTauCollection.begin();iT !=myTauCollection.end();iT++){  
   for (TauCollection::size_type iTau=0;iTau<tauHandle->size();iTau++) {
     TauRef theTau(tauHandle,iTau);
     //Prints out some quantities
