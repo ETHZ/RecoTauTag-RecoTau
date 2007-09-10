@@ -7,6 +7,7 @@
 <use name=SimDataFormats/HepMCProduct>
 <use name=DataFormats/Math>
 <use name=DataFormats/BTauReco>
+<use name=DataFormats/TauReco>
 <library file=PFTauTest.cc name=PFTauTest>
   <use name=FWCore/Framework>
   <flags EDM_PLUGIN=1>

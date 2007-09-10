@@ -1,16 +1,21 @@
 module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
-    string PFJetTracksAssociatormodule        = "jetTracksAssociator"
-    bool UsePVconstraint                      = false
-    #string PVmodule                           = "pixelVertices"
-    string PVmodule                           = "offlinePrimaryVerticesFromCTFTracks"
+    string CaloJetTracksAssociatorProducer    = "jetTracksAssociator"
+    #string PVProducer                         = "pixelVertices"
+    string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"
     double smearedPVsigmaX                    = 0.0015
     double smearedPVsigmaY                    = 0.0015
     double smearedPVsigmaZ                    = 0.0050
-    # parameters of the considered rec. tk's (were catched through a JetTracksAssociator object) :
-    double tkminPt_                           = 1. 
-    int32 tkminPixelHitsn_                    = 2 
-    int32 tkminTrackerHitsn_                  = 8 
-    double tkmaxipt_                          = 0.03 
-    double tkmaxChi2_                         = 100. 
-    double tktorefpointDZ_                    = 0.2 
+    # parameters of the considered rec. Tracks (were catched through a JetTracksAssociator object) :
+    double tkminPt                            = 1. 
+    int32 tkminPixelHitsn                     = 2 
+    int32 tkminTrackerHitsn                   = 8 
+    double tkmaxipt                           = 0.03 
+    double tkmaxChi2                          = 100. 
+    # parameters of the considered neutral ECAL BasicClusters
+    double ECALBasicClustersAroundCaloJet_DRConeSize      = 0.5
+    double ECALBasicClusterminE                           = 1.
+    double ECALBasicClusterpropagTrack_matchingDRConeSize = 0.015
+    #
+    bool UsePVconstraint                      = false
+    double tkPVmaxDZ                          = 0.2 #considered if UsePVconstraint=true 
 }

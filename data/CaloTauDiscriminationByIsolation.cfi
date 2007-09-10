@@ -1,0 +1,5 @@
+module caloTauDiscriminationByIsolation=CaloTauDiscriminationByIsolation {
+    string CaloTauProducer                            = "tauCaloProducer" 
+    bool ApplyDiscriminationByTrackerIsolation        = true
+    int32 TrackerIsolAnnulus_Tracksmaxn               = 0
+}

@@ -1,15 +1,22 @@
 module tauPFProducer = PFRecoTauProducer{
-  InputTag PFTagInfo                           = pfConeIsolation
+  InputTag PFTauTagInfoProducer                = pfTauTagInfoProducer
   #string PVProducer                            = "offlinePrimaryVerticesFromCTFTracks"  # ***    
   string PVProducer                            = "pixelVertices"  # ***  
+  double smearedPVsigmaX                       = 0.0015
+  double smearedPVsigmaY                       = 0.0015
+  double smearedPVsigmaZ                       = 0.0050
   double JetPtMin                              = 15.
   double LeadChargedHadrCand_minPt             = 6.
   double ChargedHadrCand_minPt                 = 1.
+  bool UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint = true
+  double ChargedHadrCandLeadChargedHadrCand_tksmaxDZ = 0.2
   double NeutrHadrCand_minPt                   = 1.
   double GammaCand_minPt                       = 1.    
   double LeadTrack_minPt                       = 6.
   double Track_minPt                           = 1.
-     
+  bool UseTrackLeadTrackDZconstraint           = true
+  double TrackLeadTrack_maxDZ                  = 0.2  
+ 
   string MatchingConeMetric                    = "DR"  # * 
   string MatchingConeSizeFormula               = "0.10"  # **  
   double MatchingConeVariableSize_min          = 0.10
@@ -42,7 +49,9 @@ module tauPFProducer = PFRecoTauProducer{
   double AreaMetric_recoElements_maxabsEta     = 2.5 
 
   # * possible metrics : "DR", "angle", "area";
-  #   if the "area" metric is chosen, AreaMetric_recoElements_maxabsEta parameter is considered;   
+  #   if the "area" metric is chosen, AreaMetric_recoElements_maxabsEta parameter is considered, the area of a cone is increased by increasing the angle of the cone;  
+  #   functionnality to use a "DR" signal cone and an "area" isolation outer cone is not available;
+  
 
   # ** may depend on E(energy) and/or ET(transverse energy) of the initial PFJet, ex. : "3.0/E";    
 

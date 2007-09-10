@@ -4,8 +4,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/TauReco/interface/Tau.h"
-#include "DataFormats/TauReco/interface/TauDiscriminatorByIsolation.h"
+#include "DataFormats/TauReco/interface/CaloTau.h"
+#include "DataFormats/TauReco/interface/CaloTauDiscriminatorByIsolation.h"
 
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
@@ -32,8 +32,8 @@ public:
   virtual void beginJob();
   virtual void endJob();
 private:
-  string CaloTaus_;
-  string TauDiscriminatorByIsolationProducer_;
+  string CaloTauProducer_;
+  string CaloTauDiscriminatorByIsolationProducer_;
   int nEvent;
   vector<float> nEventsUsed;
   vector<float> nEventsRiso;
@@ -41,8 +41,8 @@ private:
 };
 
 CaloTauTest::CaloTauTest(const ParameterSet& iConfig){
-  CaloTaus_                            = iConfig.getParameter<string>("CaloTaus");
-  TauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("TauDiscriminatorByIsolationProducer");
+  CaloTauProducer_                            = iConfig.getParameter<string>("CaloTauProducer");
+  CaloTauDiscriminatorByIsolationProducer_    = iConfig.getParameter<string>("CaloTauDiscriminatorByIsolationProducer");
   nEvent=0;
   nEventTaggedJets=0;
   nEventsRiso.reserve(6);
@@ -60,38 +60,38 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   cout<<"********"<<endl;
   cout<<"Event number "<<nEvent++<<endl;
   
-  Handle<TauCollection> tauHandle;
-  iEvent.getByLabel(CaloTaus_,tauHandle);
-  const TauCollection& myTauCollection=*(tauHandle.product()); 
+  Handle<CaloTauCollection> theCaloTauHandle;
+  iEvent.getByLabel(CaloTauProducer_,theCaloTauHandle);
+  const CaloTauCollection& theCaloTauCollection=*(theCaloTauHandle.product()); 
 
-  Handle<TauDiscriminatorByIsolation> theTauDiscriminatorByIsolation;
-  iEvent.getByLabel(TauDiscriminatorByIsolationProducer_,theTauDiscriminatorByIsolation);
+  Handle<CaloTauDiscriminatorByIsolation> theCaloTauDiscriminatorByIsolation;
+  iEvent.getByLabel(CaloTauDiscriminatorByIsolationProducer_,theCaloTauDiscriminatorByIsolation);
 
   cout<<"***"<<endl;
-  cout<<"Found "<<myTauCollection.size()<<" had. tau-jet candidates"<<endl;
-  int i_Tau=0;
-  for (TauCollection::size_type iTau=0;iTau<tauHandle->size();iTau++) {
-    TauRef theTau(tauHandle,iTau);
+  cout<<"Found "<<theCaloTauCollection.size()<<" had. tau-jet candidates"<<endl;
+  int i_CaloTau=0;
+  for (CaloTauCollection::size_type iCaloTau=0;iCaloTau<theCaloTauHandle->size();iCaloTau++) {
+    CaloTauRef theCaloTau(theCaloTauHandle,iCaloTau);
     //Prints out some quantities
-    cout<<"Jet Number "<<i_Tau<<endl;
-    cout<<"DiscriminatorByIsolation value "<<(*theTauDiscriminatorByIsolation)[theTau]<<endl;
-    cout<<"Pt of the Tau "<<(*theTau).pt()<<endl;
-    TrackRef theLeadTk = (*theTau).getleadTrack();
+    cout<<"Jet Number "<<i_CaloTau<<endl;
+    cout<<"DiscriminatorByIsolation value "<<(*theCaloTauDiscriminatorByIsolation)[theCaloTau]<<endl;
+    cout<<"Pt of the CaloTau "<<(*theCaloTau).pt()<<endl;
+    TrackRef theLeadTk = (*theCaloTau).leadTrack();
     if(!theLeadTk) {
       cout<<"No Lead Tk "<<endl;
     }else{
       cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
-      cout<<"InvariantMass of the Tau "<<(*theTau).getInvariantMass()<<endl;
-      cout<<"Vertex of the Tau "<<(*theTau).vz()<<endl;
-      cout<<"Charge of the Tau "<<(*theTau).charge()<<endl;
-      cout<<"Em energy fraction "<<(*theTau).getEmEnergyFraction()<<endl;
-      cout<<"Max Hadron energy "<<(*theTau).getMaximumHcalEnergy()<<endl;
-      cout<<"# Tracks "<<(*theTau).getSelectedTracks().size()<<endl;
-      cout<<"Number of Signal Tracks = "<<(*theTau).getSignalTracks().size()<<endl;
-      cout<<"Number of Isolation Tracks = "<<(*theTau).getIsolationTracks().size()<<endl;
-      cout<<"Sum pT of Isolation Tracks = "<<(*theTau).getSumPtIsolation()<<endl;
+      cout<<"InvariantMass of the Tracks system "<<(*theCaloTau).TracksInvariantMass()<<endl;
+      cout<<"InvariantMass of the signal Tracks system "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
+      cout<<"Vertex of the CaloTau "<<(*theCaloTau).vz()<<endl;
+      cout<<"Charge of the CaloTau "<<(*theCaloTau).charge()<<endl;
+      cout<<"Et of the highest Et HCAL hit "<<(*theCaloTau).highestEtHCALhitEt()<<endl;
+      cout<<"# Tracks "<<(*theCaloTau).caloTauTagInfoRef()->Tracks().size()<<endl;
+      cout<<"# Signal Tracks = "<<(*theCaloTau).signalTracks().size()<<endl;
+      cout<<"# Isolation Tracks = "<<(*theCaloTau).isolationTracks().size()<<endl;
+      cout<<"Sum of Pt of the Tracks in isolation annulus = "<<(*theCaloTau).isolationTracksPtSum()<<endl;
     }
-    i_Tau++;    
+    i_CaloTau++;    
   }    
 }
 void CaloTauTest::endJob() { }
