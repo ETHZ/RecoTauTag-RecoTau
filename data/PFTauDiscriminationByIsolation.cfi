@@ -1,4 +1,4 @@
-module pfTauDiscriminationByIsolation=PFRecoTauDiscriminationByIsolation {
+module pfTauDiscriminationByIsolation=PFTauDiscriminationByIsolation {
     string PFTauProducer                              = "tauPFProducer" 
     bool ApplyDiscriminationByTrackerIsolation        = true
     bool ManipulateTracks_insteadofChargedHadrCands   = false
