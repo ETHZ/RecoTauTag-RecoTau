@@ -16,13 +16,13 @@ module pfRecoTauTagInfoProducer=PFRecoTauTagInfoProducer {
     # parameters of the considered gamma PFCandidates, based on their rec. ECAL cluster properties :
     double GammaCand_EcalclusminE             = 1.
     # parameters of the considered rec. Tracks (these ones were catched through a JetTracksAssociation object, not through the charged hadr. PFCandidates inside the PFJet ; the motivation for considering them is the need for checking that a selection by the charged hadr. PFCandidates is equivalent to a selection by the rec. Tracks.) :
-    double tkminPt                           = 1. 
-    int32 tkminPixelHitsn                    = 2 
-    int32 tkminTrackerHitsn                  = 8 
-    double tkmaxipt                          = 0.03 
-    double tkmaxChi2                         = 100. 
+    double tkminPt                            = 1. 
+    int32 tkminPixelHitsn                     = 2 
+    int32 tkminTrackerHitsn                   = 8 
+    double tkmaxipt                           = 0.03 
+    double tkmaxChi2                          = 100. 
     #
     bool UsePVconstraint                      = false
     double ChargedHadrCand_tkPVmaxDZ          = 0.2 #considered if UsePVconstraint=true    	
-    double tkPVmaxDZ                         = 0.2 #considered if UsePVconstraint=true    
+    double tkPVmaxDZ                          = 0.2 #considered if UsePVconstraint=true    
 }

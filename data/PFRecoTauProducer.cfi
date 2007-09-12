@@ -1,5 +1,5 @@
-module tauPFProducer = PFRecoTauProducer{
-  InputTag PFTauTagInfoProducer                = pfTauTagInfoProducer
+module pfRecoTauProducer = PFRecoTauProducer{
+  InputTag PFTauTagInfoProducer                = pfRecoTauTagInfoProducer
   #string PVProducer                            = "offlinePrimaryVerticesFromCTFTracks"  # ***    
   string PVProducer                            = "pixelVertices"  # ***  
   double smearedPVsigmaX                       = 0.0015

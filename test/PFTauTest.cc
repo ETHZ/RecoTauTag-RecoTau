@@ -73,7 +73,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     PFTauRef thePFTau(thePFTauHandle,iPFTau);
     //Prints out some quantities
     cout<<"Jet Number "<<i_PFTau<<endl;
-    cout<<"DiscriminatorByIsolation value "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
+    cout<<"PFDiscriminatorByIsolation value "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
     cout<<"Pt of the PFTau "<<(*thePFTau).pt()<<endl;
     PFCandidateRef theLeadPFCand = (*thePFTau).leadPFChargedHadrCand();
     if(!theLeadPFCand){
@@ -82,7 +82,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"Lead PFCand Pt "<<(*theLeadPFCand).pt()<<endl;
       cout<<"Vertex of the PFTau "<<(*thePFTau).vz()<<endl;
       cout<<"Charge of the PFTau "<<(*thePFTau).charge()<<endl;
-      cout<<"Et of the highest Et HCAL PFCluster "<<(*thePFTau).highestEtHCALPFClusterEt()<<endl;
+      cout<<"Et of the highest Et HCAL PFCluster "<<(*thePFTau).maximumHCALPFClusterEt()<<endl;
       cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
       cout<<"# PF neutral hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().size()<<endl;
       cout<<"# PF gamma cand's "<<(*thePFTau).pfTauTagInfoRef()->PFGammaCands().size()<<endl;

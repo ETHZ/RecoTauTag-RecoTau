@@ -1,4 +1,4 @@
-module tauCaloProducer = CaloRecoTauProducer{
+module caloRecoTauProducer = CaloRecoTauProducer{
   InputTag CaloRecoTauTagInfoProducer       = caloRecoTauTagInfoProducer
   #string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"  # ***    
   string PVProducer                         = "pixelVertices"  # ***  

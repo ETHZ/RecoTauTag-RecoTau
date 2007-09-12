@@ -74,10 +74,10 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     CaloTauRef theCaloTau(theCaloTauHandle,iCaloTau);
     //Prints out some quantities
     cout<<"Jet Number "<<i_CaloTau<<endl;
-    cout<<"DiscriminatorByIsolation value "<<(*theCaloTauDiscriminatorByIsolation)[theCaloTau]<<endl;
+    cout<<"CaloDiscriminatorByIsolation value "<<(*theCaloTauDiscriminatorByIsolation)[theCaloTau]<<endl;
     cout<<"Pt of the CaloTau "<<(*theCaloTau).pt()<<endl;
-    TrackRef theLeadTk = (*theCaloTau).leadTrack();
-    if(!theLeadTk) {
+    TrackRef theLeadTk=(*theCaloTau).leadTrack();
+    if(!theLeadTk){
       cout<<"No Lead Tk "<<endl;
     }else{
       cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
@@ -85,11 +85,12 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"InvariantMass of the signal Tracks system "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
       cout<<"Vertex of the CaloTau "<<(*theCaloTau).vz()<<endl;
       cout<<"Charge of the CaloTau "<<(*theCaloTau).charge()<<endl;
-      cout<<"Et of the highest Et HCAL hit "<<(*theCaloTau).highestEtHCALhitEt()<<endl;
+      cout<<"Et of the highest Et HCAL hit "<<(*theCaloTau).maximumHCALhitEt()<<endl;
       cout<<"# Tracks "<<(*theCaloTau).caloTauTagInfoRef()->Tracks().size()<<endl;
       cout<<"# Signal Tracks = "<<(*theCaloTau).signalTracks().size()<<endl;
       cout<<"# Isolation Tracks = "<<(*theCaloTau).isolationTracks().size()<<endl;
       cout<<"Sum of Pt of the Tracks in isolation annulus = "<<(*theCaloTau).isolationTracksPtSum()<<endl;
+      cout<<"Sum of Et of the ECAL RecHits in other isolation annulus = "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
     }
     i_CaloTau++;    
   }    

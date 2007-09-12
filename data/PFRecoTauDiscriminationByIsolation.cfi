@@ -1,5 +1,5 @@
-module pfTauDiscriminationByIsolation=PFRecoTauDiscriminationByIsolation {
-    string PFTauProducer                              = "tauPFProducer" 
+module pfRecoTauDiscriminationByIsolation=PFRecoTauDiscriminationByIsolation {
+    string PFTauProducer                              = "pfRecoTauProducer" 
     bool ApplyDiscriminationByTrackerIsolation        = true
     bool ManipulateTracks_insteadofChargedHadrCands   = false
     int32 TrackerIsolAnnulus_Candsmaxn                = 0   
