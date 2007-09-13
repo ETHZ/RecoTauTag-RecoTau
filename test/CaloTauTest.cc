@@ -9,6 +9,7 @@
 
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
+#include "DataFormats/TrackReco/interface/Track.h"
 
 #include <memory>
 #include <string>
