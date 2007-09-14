@@ -84,7 +84,7 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
       cout<<"InvariantMass of the Tracks system "<<(*theCaloTau).TracksInvariantMass()<<endl;
       cout<<"InvariantMass of the signal Tracks system "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
-      cout<<"Vertex of the CaloTau "<<(*theCaloTau).vz()<<endl;
+      cout<<"Inner point position (x,y,z) of the CaloTau ("<<(*theCaloTau).vx()<<","<<(*theCaloTau).vy()<<","<<(*theCaloTau).vz()<<")"<<endl;
       cout<<"Charge of the CaloTau "<<(*theCaloTau).charge()<<endl;
       cout<<"Et of the highest Et HCAL hit "<<(*theCaloTau).maximumHCALhitEt()<<endl;
       cout<<"# Tracks "<<(*theCaloTau).caloTauTagInfoRef()->Tracks().size()<<endl;

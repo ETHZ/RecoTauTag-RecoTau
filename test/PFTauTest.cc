@@ -80,7 +80,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"No Lead PFCand "<<endl;
     }else{
       cout<<"Lead PFCand Pt "<<(*theLeadPFCand).pt()<<endl;
-      cout<<"Vertex of the PFTau "<<(*thePFTau).vz()<<endl;
+      cout<<"Inner point position (x,y,z) of the PFTau ("<<(*thePFTau).vx()<<","<<(*thePFTau).vy()<<","<<(*thePFTau).vz()<<")"<<endl;
       cout<<"Charge of the PFTau "<<(*thePFTau).charge()<<endl;
       cout<<"Et of the highest Et HCAL PFCluster "<<(*thePFTau).maximumHCALPFClusterEt()<<endl;
       cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
