@@ -1,5 +1,4 @@
-include "RecoBTau/JetTracksAssociator/data/pfJetTracksAssociator.cfi"
 include "RecoTauTag/RecoTau/data/CaloRecoTauTagInfoProducer.cfi"   
 include "RecoTauTag/RecoTau/data/CaloRecoTauProducer.cfi"
 
-sequence CaloTau = {pfJetTracksAssociator,caloRecoTauTagInfoProducer,caloRecoTauProducer}
+sequence CaloTau = {caloRecoTauTagInfoProducer,caloRecoTauProducer}
