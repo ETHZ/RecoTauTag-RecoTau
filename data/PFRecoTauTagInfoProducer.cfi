@@ -1,4 +1,5 @@
 module pfRecoTauTagInfoProducer=PFRecoTauTagInfoProducer {
+    string PFCandidateProducer                = "particleFlow"
     string PFJetTracksAssociatorProducer      = "pfJetTracksAssociator"
     #string PVProducer                         = "pixelVertices"
     string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"
