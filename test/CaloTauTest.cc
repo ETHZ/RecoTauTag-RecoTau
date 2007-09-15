@@ -63,13 +63,12 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   
   Handle<CaloTauCollection> theCaloTauHandle;
   iEvent.getByLabel(CaloTauProducer_,theCaloTauHandle);
-  const CaloTauCollection& theCaloTauCollection=*(theCaloTauHandle.product()); 
-
+  
   Handle<CaloTauDiscriminatorByIsolation> theCaloTauDiscriminatorByIsolation;
   iEvent.getByLabel(CaloTauDiscriminatorByIsolationProducer_,theCaloTauDiscriminatorByIsolation);
 
   cout<<"***"<<endl;
-  cout<<"Found "<<theCaloTauCollection.size()<<" had. tau-jet candidates"<<endl;
+  cout<<"Found "<<theCaloTauHandle->size()<<" had. tau-jet candidates"<<endl;
   int i_CaloTau=0;
   for (CaloTauCollection::size_type iCaloTau=0;iCaloTau<theCaloTauHandle->size();iCaloTau++) {
     CaloTauRef theCaloTau(theCaloTauHandle,iCaloTau);

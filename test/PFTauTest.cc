@@ -61,13 +61,12 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   
   Handle<PFTauCollection> thePFTauHandle;
   iEvent.getByLabel(PFTauProducer_,thePFTauHandle);
-  const PFTauCollection& thePFTauCollection=*(thePFTauHandle.product()); 
-
+  
   Handle<PFTauDiscriminatorByIsolation> thePFTauDiscriminatorByIsolation;
   iEvent.getByLabel(PFTauDiscriminatorByIsolationProducer_,thePFTauDiscriminatorByIsolation);
 
   cout<<"***"<<endl;
-  cout<<"Found "<<thePFTauCollection.size()<<" had. tau-jet candidates"<<endl;
+  cout<<"Found "<<thePFTauHandle->size()<<" had. tau-jet candidates"<<endl;
   int i_PFTau=0;
   for (PFTauCollection::size_type iPFTau=0;iPFTau<thePFTauHandle->size();iPFTau++) {
     PFTauRef thePFTau(thePFTauHandle,iPFTau);
