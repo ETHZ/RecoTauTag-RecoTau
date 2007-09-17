@@ -73,24 +73,28 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   for (CaloTauCollection::size_type iCaloTau=0;iCaloTau<theCaloTauHandle->size();iCaloTau++) {
     CaloTauRef theCaloTau(theCaloTauHandle,iCaloTau);
     //Prints out some quantities
+    cout<<"***"<<endl;
     cout<<"Jet Number "<<i_CaloTau<<endl;
     cout<<"CaloDiscriminatorByIsolation value "<<(*theCaloTauDiscriminatorByIsolation)[theCaloTau]<<endl;
-    cout<<"Pt of the CaloTau "<<(*theCaloTau).pt()<<endl;
+    cout<<"Pt of the CaloTau (GeV/c) "<<(*theCaloTau).pt()<<endl;
+    cout<<"InvariantMass of the Tracks + neutral ECAL Island BasicClusters system (GeV/c2) "<<(*theCaloTau).alternatLorentzVect().M()<<endl;
+    cout<<"InvariantMass of the Tracks system (GeV/c2) "<<(*theCaloTau).TracksInvariantMass()<<endl;
+    cout<<"Charge of the CaloTau "<<(*theCaloTau).charge()<<endl;
+    cout<<"Inner point position (x,y,z) of the CaloTau ("<<(*theCaloTau).vx()<<","<<(*theCaloTau).vy()<<","<<(*theCaloTau).vz()<<")"<<endl;
+    cout<<"Et of the highest Et HCAL hit (GeV) "<<(*theCaloTau).maximumHCALhitEt()<<endl;
+    cout<<"# Tracks "<<(*theCaloTau).caloTauTagInfoRef()->Tracks().size()<<endl;
+    cout<<"# neutral ECAL Island algo. BasicClusters "<<(*theCaloTau).caloTauTagInfoRef()->neutralECALBasicClusters().size()<<endl;
     TrackRef theLeadTk=(*theCaloTau).leadTrack();
     if(!theLeadTk){
       cout<<"No Lead Tk "<<endl;
     }else{
-      cout<<"Lead Tk pt "<<(*theLeadTk).pt()<<endl;
-      cout<<"InvariantMass of the Tracks system "<<(*theCaloTau).TracksInvariantMass()<<endl;
-      cout<<"InvariantMass of the signal Tracks system "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
-      cout<<"Inner point position (x,y,z) of the CaloTau ("<<(*theCaloTau).vx()<<","<<(*theCaloTau).vy()<<","<<(*theCaloTau).vz()<<")"<<endl;
-      cout<<"Charge of the CaloTau "<<(*theCaloTau).charge()<<endl;
-      cout<<"Et of the highest Et HCAL hit "<<(*theCaloTau).maximumHCALhitEt()<<endl;
-      cout<<"# Tracks "<<(*theCaloTau).caloTauTagInfoRef()->Tracks().size()<<endl;
-      cout<<"# Signal Tracks = "<<(*theCaloTau).signalTracks().size()<<endl;
-      cout<<"# Isolation Tracks = "<<(*theCaloTau).isolationTracks().size()<<endl;
-      cout<<"Sum of Pt of the Tracks in isolation annulus = "<<(*theCaloTau).isolationTracksPtSum()<<endl;
-      cout<<"Sum of Et of the ECAL RecHits in other isolation annulus = "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
+      cout<<"Lead Tk pt (GeV/c) "<<(*theLeadTk).pt()<<endl;
+      cout<<"Lead Tk signed transverse impact parameter significance "<<(*theCaloTau).leadTracksignedSipt()<<endl;
+      cout<<"InvariantMass of the signal Tracks system (GeV/c2) "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
+      cout<<"# Signal Tracks "<<(*theCaloTau).signalTracks().size()<<endl;
+      cout<<"# Isolation Tracks "<<(*theCaloTau).isolationTracks().size()<<endl;
+      cout<<"Sum of Pt of the Tracks in isolation annulus (GeV/c) "<<(*theCaloTau).isolationTracksPtSum()<<endl;
+      cout<<"Sum of Et of the ECAL RecHits in other isolation annulus (GeV) "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
     }
     i_CaloTau++;    
   }    
