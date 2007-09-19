@@ -12,6 +12,11 @@
   <use name=FWCore/Framework>
   <flags EDM_PLUGIN=1>
 </library>
+<library file=PFTauAnalyzer.cc name=PFTauAnalyzer>
+  <use name=FWCore/Framework>
+  <use name=RecoTauTag/TauTagTools>
+  <flags EDM_PLUGIN=1>
+</library>
 <library file=CaloTauTest.cc name=CaloTauTest>
   <use name=FWCore/Framework>
   <flags EDM_PLUGIN=1>
