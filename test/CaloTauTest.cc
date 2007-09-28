@@ -36,22 +36,12 @@ private:
   string CaloTauProducer_;
   string CaloTauDiscriminatorByIsolationProducer_;
   int nEvent;
-  vector<float> nEventsUsed;
-  vector<float> nEventsRiso;
-  int nEventTaggedJets;
 };
 
 CaloTauTest::CaloTauTest(const ParameterSet& iConfig){
   CaloTauProducer_                            = iConfig.getParameter<string>("CaloTauProducer");
   CaloTauDiscriminatorByIsolationProducer_    = iConfig.getParameter<string>("CaloTauDiscriminatorByIsolationProducer");
   nEvent=0;
-  nEventTaggedJets=0;
-  nEventsRiso.reserve(6);
-  nEventsUsed.reserve(6);
-  for(int i=0;i<6;i++){
-    nEventsRiso[i]=0.;
-    nEventsUsed[i]=0.;
-  }
 }
 
 void CaloTauTest::beginJob(){}
@@ -93,8 +83,8 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"InvariantMass of the signal Tracks system (GeV/c2) "<<(*theCaloTau).signalTracksInvariantMass()<<endl;
       cout<<"# Signal Tracks "<<(*theCaloTau).signalTracks().size()<<endl;
       cout<<"# Isolation Tracks "<<(*theCaloTau).isolationTracks().size()<<endl;
-      cout<<"Sum of Pt of the Tracks in isolation annulus (GeV/c) "<<(*theCaloTau).isolationTracksPtSum()<<endl;
-      cout<<"Sum of Et of the ECAL RecHits in other isolation annulus (GeV) "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
+      cout<<"Sum of Pt of the Tracks in isolation annulus around Lead Tk (GeV/c) "<<(*theCaloTau).isolationTracksPtSum()<<endl;
+      cout<<"Sum of Et of the ECAL RecHits in other isolation annulus around Lead Tk (GeV) "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
     }
     i_CaloTau++;    
   }    

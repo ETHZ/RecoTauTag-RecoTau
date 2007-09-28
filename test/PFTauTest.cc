@@ -35,22 +35,12 @@ private:
   string PFTauProducer_;
   string PFTauDiscriminatorByIsolationProducer_;
   int nEvent;
-  vector<float> nEventsUsed;
-  vector<float> nEventsRiso;
-  int nEventTaggedJets;
 };
 
 PFTauTest::PFTauTest(const ParameterSet& iConfig){
   PFTauProducer_                         = iConfig.getParameter<string>("PFTauProducer");
   PFTauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("PFTauDiscriminatorByIsolationProducer");
   nEvent=0;
-  nEventTaggedJets=0;
-  nEventsRiso.reserve(6);
-  nEventsUsed.reserve(6);
-  for(int i=0;i<6;i++){
-    nEventsRiso[i]=0.;
-    nEventsUsed[i]=0.;
-  }
 }
 
 void PFTauTest::beginJob(){}
@@ -74,6 +64,10 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     cout<<"Jet Number "<<i_PFTau<<endl;
     cout<<"PFDiscriminatorByIsolation value "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
     cout<<"Pt of the PFTau "<<(*thePFTau).pt()<<endl;
+    cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
+    cout<<"# Tracks "<<(*thePFTau).pfTauTagInfoRef()->Tracks().size()<<endl;
+    cout<<"# PF neutral hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().size()<<endl;
+    cout<<"# PF gamma cand's "<<(*thePFTau).pfTauTagInfoRef()->PFGammaCands().size()<<endl;
     PFCandidateRef theLeadPFCand = (*thePFTau).leadPFChargedHadrCand();
     if(!theLeadPFCand){
       cout<<"No Lead PFCand "<<endl;
@@ -82,15 +76,12 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"Inner point position (x,y,z) of the PFTau ("<<(*thePFTau).vx()<<","<<(*thePFTau).vy()<<","<<(*thePFTau).vz()<<")"<<endl;
       cout<<"Charge of the PFTau "<<(*thePFTau).charge()<<endl;
       cout<<"Et of the highest Et HCAL PFCluster "<<(*thePFTau).maximumHCALPFClusterEt()<<endl;
-      cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
-      cout<<"# PF neutral hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().size()<<endl;
-      cout<<"# PF gamma cand's "<<(*thePFTau).pfTauTagInfoRef()->PFGammaCands().size()<<endl;
       cout<<"Number of SignalPFChargedHadrCands = "<<(*thePFTau).signalPFChargedHadrCands().size()<<endl;
-      cout<<"Number of IsolationPFChargedHadrCands = "<<(*thePFTau).isolationPFChargedHadrCands().size()<<endl;
       cout<<"Number of SignalPFGammaCands = "<<(*thePFTau).signalPFGammaCands().size()<<endl;
+      cout<<"Number of IsolationPFChargedHadrCands = "<<(*thePFTau).isolationPFChargedHadrCands().size()<<endl;
       cout<<"Number of IsolationPFGammaCands = "<<(*thePFTau).isolationPFGammaCands().size()<<endl;
-      cout<<"Sum of Pt of charged hadr. PFCandidates in isolation annulus  = "<<(*thePFTau).isolationPFChargedHadrCandsPtSum()<<endl;
-      cout<<"Sum of Et of gamma PFCandidates in other isolation annulus = "<<(*thePFTau).isolationPFGammaCandsEtSum()<<endl;	
+      cout<<"Sum of Pt of charged hadr. PFCandidates in isolation annulus around Lead PF = "<<(*thePFTau).isolationPFChargedHadrCandsPtSum()<<endl;
+      cout<<"Sum of Et of gamma PFCandidates in other isolation annulus around Lead PF = "<<(*thePFTau).isolationPFGammaCandsEtSum()<<endl;	
     }
     i_PFTau++;    
   }    
