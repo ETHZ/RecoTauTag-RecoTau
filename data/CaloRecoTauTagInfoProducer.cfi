@@ -1,5 +1,5 @@
 module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
-    string CaloJetTracksAssociatorProducer    = "ic5JetTracksAssociatorAtVertex"
+    string CaloJetTracksAssociatorProducer    = "jetTracksAssociator"
     #string PVProducer                         = "pixelVertices"
     string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"
     double smearedPVsigmaX                    = 0.0015
