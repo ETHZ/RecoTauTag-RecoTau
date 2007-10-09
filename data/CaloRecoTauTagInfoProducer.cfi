@@ -18,4 +18,8 @@ module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
     #
     bool UsePVconstraint                      = false
     double tkPVmaxDZ                          = 0.2 #considered if UsePVconstraint=true 
+    # parameters of the considered EcalRecHits
+    InputTag EBRecHitsSource = ecalRecHit:EcalRecHitsEB
+    InputTag EERecHitsSource = ecalRecHit:EcalRecHitsEE
+    InputTag ESRecHitsSource = ecalPreshowerRecHit:EcalRecHitsES
 }
