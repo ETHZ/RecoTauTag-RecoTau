@@ -14,6 +14,10 @@ CaloRecoTauTagInfoAlgorithm::CaloRecoTauTagInfoAlgorithm(const ParameterSet& par
   ECALBasicClustersAroundCaloJet_DRConeSize_      = parameters.getParameter<double>("ECALBasicClustersAroundCaloJet_DRConeSize");
   ECALBasicClusterminE_                           = parameters.getParameter<double>("ECALBasicClusterminE");
   ECALBasicClusterpropagTrack_matchingDRConeSize_ = parameters.getParameter<double>("ECALBasicClusterpropagTrack_matchingDRConeSize");
+  // parameters of the considered EcalRecHits
+  EBRecHitsLabel_                     = parameters.getParameter<InputTag>("EBRecHitsSource");
+  EERecHitsLabel_                     = parameters.getParameter<InputTag>("EERecHitsSource");
+  ESRecHitsLabel_                     = parameters.getParameter<InputTag>("ESRecHitsSource");
 }
   
 CaloTauTagInfo CaloRecoTauTagInfoAlgorithm::buildCaloTauTagInfo(Event& theEvent,const EventSetup& theEventSetup,const CaloJetRef& theCaloJet,const TrackRefVector& theTracks,const Vertex& thePV){
@@ -42,9 +46,9 @@ vector<pair<math::XYZPoint,float> > CaloRecoTauTagInfoAlgorithm::getPositionAndE
   Handle<EBRecHitCollection> EBRecHits;
   Handle<EERecHitCollection> EERecHits; 
   Handle<ESRecHitCollection> ESRecHits; 
-  theEvent.getByLabel("ecalRecHit","EcalRecHitsEB",EBRecHits);
-  theEvent.getByLabel("ecalRecHit","EcalRecHitsEE",EERecHits);
-  theEvent.getByLabel("ecalPreshowerRecHit","EcalRecHitsES",ESRecHits);
+  theEvent.getByLabel(EBRecHitsLabel_,EBRecHits);
+  theEvent.getByLabel(EERecHitsLabel_,EERecHits);
+  theEvent.getByLabel(ESRecHitsLabel_,ESRecHits);
   for(vector<CaloTowerRef>::const_iterator i_Tower=theCaloTowers.begin();i_Tower!=theCaloTowers.end();i_Tower++){
     size_t numRecHits = (**i_Tower).constituentsSize();
     for(size_t j=0;j<numRecHits;j++) {
