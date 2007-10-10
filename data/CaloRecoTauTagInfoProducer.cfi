@@ -1,5 +1,5 @@
 module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
-    string CaloJetTracksAssociatorProducer    = "jetTracksAssociator"
+    string CaloJetTracksAssociatorProducer    = "ic5JetTracksAssociatorAtVertex"
     #string PVProducer                         = "pixelVertices"
     string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"
     double smearedPVsigmaX                    = 0.0015
@@ -11,11 +11,14 @@ module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
     int32 tkminTrackerHitsn                   = 8 
     double tkmaxipt                           = 0.03 
     double tkmaxChi2                          = 100. 
+    bool UsePVconstraint                      = false
+    double tkPVmaxDZ                          = 0.2 #considered if UsePVconstraint=true 
+    # parameters of the considered EcalRecHits
+    InputTag EBRecHitsSource = ecalRecHit:EcalRecHitsEB
+    InputTag EERecHitsSource = ecalRecHit:EcalRecHitsEE
+    InputTag ESRecHitsSource = ecalPreshowerRecHit:EcalRecHitsES
     # parameters of the considered neutral ECAL BasicClusters
     double ECALBasicClustersAroundCaloJet_DRConeSize      = 0.5
     double ECALBasicClusterminE                           = 1.
     double ECALBasicClusterpropagTrack_matchingDRConeSize = 0.015
-    #
-    bool UsePVconstraint                      = false
-    double tkPVmaxDZ                          = 0.2 #considered if UsePVconstraint=true 
 }
