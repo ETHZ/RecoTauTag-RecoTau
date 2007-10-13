@@ -19,32 +19,32 @@ module pfRecoTauProducer = PFRecoTauProducer{
  
   string MatchingConeMetric                    = "DR"  # * 
   string MatchingConeSizeFormula               = "0.10"  # **  
-  double MatchingConeVariableSize_min          = 0.10
-  double MatchingConeVariableSize_max          = 0.10 
+  double MatchingConeSize_min                  = 0.00
+  double MatchingConeSize_max                  = 0.60 
   string TrackerSignalConeMetric               = "DR"  # * 
   string TrackerSignalConeSizeFormula          = "0.10" 
-  double TrackerSignalConeVariableSize_min     = 0.10
-  double TrackerSignalConeVariableSize_max     = 0.10 
+  double TrackerSignalConeSize_min             = 0.00
+  double TrackerSignalConeSize_max             = 0.60 
   string TrackerIsolConeMetric                 = "DR"  # * 
   string TrackerIsolConeSizeFormula            = "0.50"  # **  
-  double TrackerIsolConeVariableSize_min       = 0.50
-  double TrackerIsolConeVariableSize_max       = 0.50
+  double TrackerIsolConeSize_min               = 0.00
+  double TrackerIsolConeSize_max               = 0.60
   string ECALSignalConeMetric                  = "DR"  # * 
   string ECALSignalConeSizeFormula             = "0.15"  # **       
-  double ECALSignalConeVariableSize_min        = 0.15
-  double ECALSignalConeVariableSize_max        = 0.15
+  double ECALSignalConeSize_min                = 0.00
+  double ECALSignalConeSize_max                = 0.60
   string ECALIsolConeMetric                    = "DR"  # *  
   string ECALIsolConeSizeFormula               = "0.50"  # **         
-  double ECALIsolConeVariableSize_min          = 0.50
-  double ECALIsolConeVariableSize_max          = 0.50
+  double ECALIsolConeSize_min                  = 0.00
+  double ECALIsolConeSize_max                  = 0.60
   string HCALSignalConeMetric                  = "DR"  # *  
   string HCALSignalConeSizeFormula             = "0.10"     
-  double HCALSignalConeVariableSize_min        = 0.10
-  double HCALSignalConeVariableSize_max        = 0.10
+  double HCALSignalConeSize_min                = 0.00
+  double HCALSignalConeSize_max                = 0.60
   string HCALIsolConeMetric                    = "DR"  # *  
   string HCALIsolConeSizeFormula               = "0.50"  # **        
-  double HCALIsolConeVariableSize_min          = 0.50
-  double HCALIsolConeVariableSize_max          = 0.50
+  double HCALIsolConeSize_min                  = 0.00
+  double HCALIsolConeSize_max                  = 0.60
       
   double AreaMetric_recoElements_maxabsEta     = 2.5 
 
@@ -54,6 +54,7 @@ module pfRecoTauProducer = PFRecoTauProducer{
   
 
   # ** may depend on E(energy) and/or ET(transverse energy) of the initial PFJet, ex. : "3.0/E";    
+  #    if XXXConeSizeFormula>XXXConeSize_max then XXXConeSize_max is the considered cone size ; if XXXConeSizeFormula<XXXConeSize_min then XXXConeSize_min is the considered cone size;
 
   # *** a PV is needed for computing a leading (charged hadron PFCand) rec. tk signed transverse impact parameter. 
 }
