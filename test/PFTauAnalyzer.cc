@@ -1,8 +1,8 @@
 /* class PFTauAnalyzer
  *  EDAnalyzer of the PFTau objects, 
  *  created: Sep 15 2007,
- *  revised: 
- *  author: Ludovic Houchu.
+ *  revised: Dec 28 2007
+ *  contributors : Ludovic Houchu, Anne-Catherine Le Bihan.
  */
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -54,6 +54,7 @@ public:
   virtual void beginJob();
   virtual void endJob();
 private:
+  string GenJetProd_;
   string HepMCProductProd_;
   string PFSimParticleProd_;
   string PFTauProd_;
@@ -78,13 +79,20 @@ private:
   static const int MaxGenTausnumber=100;
   int GenTausnumber;
   int GenTau_pid[MaxGenTausnumber];
-  float GenTau_e[MaxGenTausnumber];
+  float GenTau_e[MaxGenTausnumber]; 
+  float GenTau_et[MaxGenTausnumber];
   float GenTau_theta[MaxGenTausnumber];
   float GenTau_phi[MaxGenTausnumber];
   float GenTau_visproducts_e[MaxGenTausnumber];
+  float GenTau_visproducts_et[MaxGenTausnumber];
   float GenTau_visproducts_theta[MaxGenTausnumber];
   float GenTau_visproducts_phi[MaxGenTausnumber];
-  int GenTau_decaytype[MaxGenTausnumber];
+  int   GenTau_decaytype[MaxGenTausnumber];  
+  int   GenTau_pftau[MaxGenTausnumber];  
+  int   GenTau_signalCHCands_number[MaxGenTausnumber];  
+  int   GenTau_isolCHCands_number[MaxGenTausnumber];  
+  int   GenTau_NHCands_number[MaxGenTausnumber];  
+  int   GenTau_GCands_number[MaxGenTausnumber];    
   static const int MaxSimTausnumber=100;
   int SimTausnumber;
   int SimTau_pid[MaxSimTausnumber];
@@ -151,6 +159,7 @@ private:
 };
 
 PFTauAnalyzer::PFTauAnalyzer(const edm::ParameterSet& iConfig){  
+  GenJetProd_                           = iConfig.getParameter<string>("GenJetProd");
   HepMCProductProd_                     = iConfig.getParameter<string>("HepMCProductProd");
   PFSimParticleProd_                    = iConfig.getParameter<string>("PFSimParticleProd");
   PFTauProd_                            = iConfig.getParameter<string>("PFTauProd");
@@ -182,12 +191,19 @@ PFTauAnalyzer::PFTauAnalyzer(const edm::ParameterSet& iConfig){
   theEventTree->Branch("GenTausnumber",&GenTausnumber,"GenTausnumber/I");
   theEventTree->Branch("GenTau_pid",GenTau_pid,"GenTau_pid[GenTausnumber]/I");
   theEventTree->Branch("GenTau_e",GenTau_e,"GenTau_e[GenTausnumber]/F");
+  theEventTree->Branch("GenTau_et",GenTau_et,"GenTau_et[GenTausnumber]/F");
   theEventTree->Branch("GenTau_theta",GenTau_theta,"GenTau_theta[GenTausnumber]/F");
   theEventTree->Branch("GenTau_phi",GenTau_phi,"GenTau_phi[GenTausnumber]/F");
   theEventTree->Branch("GenTau_visproducts_e",GenTau_visproducts_e,"GenTau_visproducts_e[GenTausnumber]/F");
+  theEventTree->Branch("GenTau_visproducts_et",GenTau_visproducts_et,"GenTau_visproducts_et[GenTausnumber]/F");
   theEventTree->Branch("GenTau_visproducts_theta",GenTau_visproducts_theta,"GenTau_visproducts_theta[GenTausnumber]/F");
   theEventTree->Branch("GenTau_visproducts_phi",GenTau_visproducts_phi,"GenTau_visproducts_phi[GenTausnumber]/F");
-  theEventTree->Branch("GenTau_decaytype",GenTau_decaytype,"GenTau_decaytype[GenTausnumber]/I");
+  theEventTree->Branch("GenTau_decaytype",GenTau_decaytype,"GenTau_decaytype[GenTausnumber]/I");  
+  theEventTree->Branch("GenTau_pftau",GenTau_pftau,"GenTau_pftau[GenTausnumber]/I");
+  theEventTree->Branch("GenTau_signalCHCands_number",GenTau_signalCHCands_number,"GenTau_signalCHCands_number[GenTausnumber]/I");
+  theEventTree->Branch("GenTau_isolCHCands_number",GenTau_isolCHCands_number,"GenTau_isolCHCands_number[GenTausnumber]/I");
+  theEventTree->Branch("GenTau_NHCands_number",GenTau_NHCands_number,"GenTau_NHCands_number[GenTausnumber]/I");
+  theEventTree->Branch("GenTau_GCands_number",GenTau_GCands_number,"GenTau_GCands_number[GenTausnumber]/I");       
   theEventTree->Branch("GenJet05snumber",&GenJet05snumber,"GenJet05snumber/I");
   theEventTree->Branch("GenJet05_e",GenJet05_e,"GenJet05_e[GenJet05snumber]/F");
   theEventTree->Branch("GenJet05_et",GenJet05_et,"GenJet05_et[GenJet05snumber]/F");
@@ -287,7 +303,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   */
   int iGenTau = 0; 
   for (HepMC::GenEvent::particle_const_iterator iter=(*(evt->GetEvent())).particles_begin();iter!=(*(evt->GetEvent())).particles_end();iter++) {
-    if ((**iter).status()==2 && (abs((**iter).pdg_id())==15)){
+     if ((**iter).status()==2 && (abs((**iter).pdg_id())==15)){
       HepMC::GenParticle* TheParticle=(*iter);
       math::XYZTLorentzVector TheParticle_LorentzVect(TheParticle->momentum().px(),TheParticle->momentum().py(),TheParticle->momentum().pz(),TheParticle->momentum().e());
       math::XYZTLorentzVector TheTauJet_LorentzVect=TheParticle_LorentzVect;
@@ -304,8 +320,15 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       bool tau_decayingtoenunubar = false;
       bool tau_decayingtomununubar = false;
       bool tau_decayingto1prongnu = false;
-      bool tau_decayingtopi0chargedpinu = false;
-      bool tau_decayingto3prongsnu = false;
+      bool tau_decayingtopi0chargedpinu  = false;
+      bool tau_decayingto2pi0chargedpinu = false;
+      bool tau_decayingto3pi0chargedpinu = false;
+      bool tau_decayingto4pi0chargedpinu = false;  
+      bool tau_decayingtopi0chargedpinugam  = false;
+      bool tau_decayingto3prongsnu          = false;
+      bool tau_decayingto3prongs1pi0nu      = false;
+      bool tau_decayingto3prongs2pi0nu      = false;
+      
       if (tau_children_n==2) {
 	HepMC::GenVertex::particles_out_const_iterator i_1sttaudaughter=TheParticle->end_vertex()->particles_out_const_begin();
 	HepMC::GenVertex::particles_out_const_iterator i_2ndtaudaughter=++TheParticle->end_vertex()->particles_out_const_begin();
@@ -369,9 +392,11 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       }
       GenTau_pid[iGenTau] = (int)(**iter).pdg_id();
       GenTau_e[iGenTau] = (float)(**iter).momentum().e();
+      GenTau_et[iGenTau] = (float)((**iter).momentum().e()*fabs(sin((**iter).momentum().theta())));
       GenTau_theta[iGenTau] = (float)(**iter).momentum().theta();
       GenTau_phi[iGenTau] = (float)(**iter).momentum().phi();
       GenTau_visproducts_e[iGenTau] = (float)TheTauJet_LorentzVect.e();
+      GenTau_visproducts_et[iGenTau] = (float)TheTauJet_LorentzVect.Et();
       GenTau_visproducts_theta[iGenTau] = (float)TheTauJet_LorentzVect.theta();
       GenTau_visproducts_phi[iGenTau] = (float)TheTauJet_LorentzVect.phi();
       if (tau_decayingtoenunubar) {
@@ -387,13 +412,82 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	GenTau_decaytype[iGenTau] = 4;
       }
       if (tau_decayingto3prongsnu) {
-	GenTau_decaytype[iGenTau] = 5;
+	GenTau_decaytype[iGenTau] = 9;
       }
       if (!tau_decayingtoenunubar && !tau_decayingtomununubar && !tau_decayingto1prongnu && !tau_decayingtopi0chargedpinu && !tau_decayingto3prongsnu) {
-	GenTau_decaytype[iGenTau] = 6;
+	int npi  = 0;
+	int npi0 = 0;
+	int ngam = 0;	
+	if(tau_children_n>0){
+	HepMC::GenVertex::particles_out_const_iterator isttaudaughter = TheParticle->end_vertex()->particles_out_const_begin();
+	for (int j=0; j< tau_children_n; j++)
+	{ 
+	  if  (abs((**isttaudaughter).pdg_id()) == 211) npi++ ;
+	  if  (abs((**isttaudaughter).pdg_id()) == 111) npi0++; 
+	  if  (abs((**isttaudaughter).pdg_id()) == 22)  ngam++;
+	  
+	  if ( abs((**isttaudaughter).pdg_id()) == 223 || abs((**isttaudaughter).pdg_id()) == 221 || abs((**isttaudaughter).pdg_id()) == 213 || abs((**isttaudaughter).pdg_id()) == 113)
+	  { 
+	    int daughter_children_n = (**isttaudaughter).end_vertex()->particles_out_size();
+	    if (daughter_children_n>0) 
+	    { 
+	      HepMC::GenVertex::particles_out_const_iterator istbaby = (**isttaudaughter).end_vertex()->particles_out_const_begin();
+	      for (int y=0; y<daughter_children_n; y++)
+	      { 
+	      
+	       if  (abs((**istbaby).pdg_id()) == 211) npi++ ;
+	       if  (abs((**istbaby).pdg_id()) == 111) npi0++;  
+	       if  (abs((**istbaby).pdg_id()) == 22)  ngam++;
+	       istbaby++;
+	       }
+	     }
+	   }
+	  isttaudaughter++;
+	}
+       }
+       if      (npi == 1 && npi0 == 2)  	   {tau_decayingto2pi0chargedpinu   = true; GenTau_decaytype[iGenTau] = 5; }
+       else if (npi == 1 && npi0 == 3)  	   {tau_decayingto3pi0chargedpinu   = true; GenTau_decaytype[iGenTau] = 6; }
+       else if (npi == 1 && npi0 == 4)  	   {tau_decayingto4pi0chargedpinu   = true; GenTau_decaytype[iGenTau] = 7; }  
+       else if (npi == 1 && npi0 == 1 && ngam >0)  {tau_decayingtopi0chargedpinugam = true; GenTau_decaytype[iGenTau] = 8; } 
+       else if (npi == 3 && npi0 == 1)  	   {tau_decayingto3prongs1pi0nu     = true; GenTau_decaytype[iGenTau] = 10;}
+       else if (npi == 3 && npi0 == 2)  	   {tau_decayingto3prongs2pi0nu     = true; GenTau_decaytype[iGenTau] = 11;}
+       else                             	   {GenTau_decaytype[iGenTau] = 12;}
       }
+      
       pair<math::XYZTLorentzVector,int> TheTauJet_pair(TheTauJet_LorentzVect,GenTau_decaytype[iGenTau]);
-      GenTau_pair.push_back(TheTauJet_pair);
+      GenTau_pair.push_back(TheTauJet_pair); 
+           
+      float minDeltaR = 99.;
+      PFTauCollection::size_type minDeltaR_iPFTau=0;
+      
+      Handle<PFTauCollection> thePFTauHandle;
+      iEvent.getByLabel(PFTauProd_,thePFTauHandle);
+      
+      if (thePFTauHandle->size()>0){
+	for (PFTauCollection::size_type iPFTau=0;iPFTau<thePFTauHandle->size();iPFTau++) { 
+	  PFTauRef thePFTau(thePFTauHandle,iPFTau);
+	  math::XYZTLorentzVector ThePFTauJet_LorentzVect=(*thePFTau).p4();
+	  if (ROOT::Math::VectorUtil::DeltaR(TheTauJet_LorentzVect,ThePFTauJet_LorentzVect)< minDeltaR ) {
+	    minDeltaR_iPFTau = iPFTau;
+	    minDeltaR=ROOT::Math::VectorUtil::DeltaR(TheTauJet_LorentzVect,ThePFTauJet_LorentzVect);
+	  }      
+        }
+      }      
+      if (minDeltaR <0.5){
+	PFTauRef thePFTau(thePFTauHandle,minDeltaR_iPFTau);
+	GenTau_pftau[iGenTau] = 1;
+	GenTau_signalCHCands_number[iGenTau]=(int)(*thePFTau).signalPFChargedHadrCands().size();
+	GenTau_isolCHCands_number[iGenTau]  =(int)(*thePFTau).isolationPFChargedHadrCands().size();
+	GenTau_NHCands_number[iGenTau]	  =(int)(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().size();
+	GenTau_GCands_number[iGenTau]	  =(int)(*thePFTau).pfTauTagInfoRef()->PFGammaCands().size();
+      }
+      else {
+	GenTau_pftau[iGenTau] = -1;
+	GenTau_signalCHCands_number[iGenTau]= 0;
+	GenTau_isolCHCands_number[iGenTau]  = 0;
+	GenTau_NHCands_number[iGenTau]      = 0;
+	GenTau_GCands_number[iGenTau]	  = 0; 
+      }          
       ++iGenTau;
     }		 
   }  
@@ -406,7 +500,8 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   const PFSimParticleCollection& thePFSimParticleCollection=*(thePFSimParticleCollectionHandle.product());
   for (PFSimParticleCollection::const_iterator iPFSimParticle=thePFSimParticleCollection.begin();iPFSimParticle!=thePFSimParticleCollection.end();++iPFSimParticle) {
     const PFSimParticle& thePFSimParticle=(*iPFSimParticle);
-    if (abs(thePFSimParticle.pdgCode())==15) {
+  
+    if (abs(thePFSimParticle.pdgCode())==15) { 
       const vector<int>& thePFSimParticledaughters = thePFSimParticle.daughterIds();
       math::XYZTLorentzVector TheTauJet_LorentzVect(0.,0.,0.,0.);
       bool tau_decayingtoenunubar=false;
@@ -463,12 +558,15 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  TheTauJet_LorentzVect+=theTauDaughter_LorentzVect;
 	}
       }
+      
       if (tau_decayingtoenunubar) SimTau_decaytype[iSimTau] = 1;
       if (tau_decayingtomununubar) SimTau_decaytype[iSimTau] = 2;
       if (tau_decayingto1prongnu) SimTau_decaytype[iSimTau] = 3;
       if (tau_decayingtopi0chargedpinu) SimTau_decaytype[iSimTau] = 4;
       if (tau_decayingto3prongsnu) SimTau_decaytype[iSimTau] = 5;
       if (!tau_decayingtoenunubar && !tau_decayingtomununubar && !tau_decayingto1prongnu && !tau_decayingtopi0chargedpinu && !tau_decayingto3prongsnu) SimTau_decaytype[iSimTau] = 6;
+      
+       
       SimTau_pid[iSimTau] = thePFSimParticle.pdgCode();
       SimTau_visproducts_e[iSimTau] = (float)TheTauJet_LorentzVect.E();
       SimTau_visproducts_p[iSimTau] = (float)TheTauJet_LorentzVect.Rho();
@@ -485,7 +583,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   int iGenJet05 = 0; 
   /*
   Handle<GenJetCollection> genIter05Jets;
-  iEvent.getByLabel("iterativeCone5GenJets",genIter05Jets);   
+  iEvent.getByLabel(GenJetProd_,genIter05Jets);   
   for(GenJetCollection::const_iterator i_genIter05Jet=genIter05Jets->begin();i_genIter05Jet!=genIter05Jets->end();++i_genIter05Jet) {
     math::XYZTLorentzVector myGenJet05_LorentzVect(i_genIter05Jet->px(),i_genIter05Jet->py(),i_genIter05Jet->pz(),i_genIter05Jet->energy());
     GenJet05_e[iGenJet05] = myGenJet05_LorentzVect.E();
@@ -544,8 +642,9 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     double thePFTau_refInnerPosition_y=0.;
     double thePFTau_refInnerPosition_z=0.;
     int ChargedHadrCands_n=0;
-    if(theleadPFChargedHadrCand.isNonnull()){
-      if ((*theleadPFChargedHadrCand).blockRef()->elements().size()!=0){
+    if(theleadPFChargedHadrCand.isNonnull()){    
+      // search for the track which is the main constituent of a ch. hadr. cand. ...
+      if ((*theleadPFChargedHadrCand).blockRef()->elements().size()!=0){ 
 	for (OwnVector<PFBlockElement>::const_iterator iPFBlockElement=(*theleadPFChargedHadrCand).blockRef()->elements().begin();iPFBlockElement!=(*theleadPFChargedHadrCand).blockRef()->elements().end();iPFBlockElement++){
 	  if ((*iPFBlockElement).type()==PFBlockElement::TRACK && ROOT::Math::VectorUtil::DeltaR((*theleadPFChargedHadrCand).momentum(),(*iPFBlockElement).trackRef()->momentum())<0.001){
 	    TrackRef theleadPFChargedHadrCand_rectk=(*iPFBlockElement).trackRef();
@@ -560,12 +659,14 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	    }
 	  }
 	}
-      }  
+      }
+        
       int NeutrHadrCands_n=0;
       int GammaCands_n=0;
+      
       for (PFCandidateRefVector::const_iterator iChargedHadrCand=(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().begin();iChargedHadrCand!=(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().end();++iChargedHadrCand){
 	if (UseCHCandLeadCHCand_tksDZconstraint_){
-	  if (!theleadPFChargedHadrCand_rectkavailable) continue;
+	  if (!theleadPFChargedHadrCand_rectkavailable) continue; // ch. hadr. cand. w/o track ???
 	  bool iChargedHadrCand_rectkavailable=false;
 	  double iChargedHadrCand_rectkDZ=0.;
 	  if ((**iChargedHadrCand).blockRef()->elements().size()!=0){
@@ -585,16 +686,19 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	if ((*iChargedHadrCand)!=theleadPFChargedHadrCand) PFTau_CHCandDR[ChargedHadrCands_n]=ROOT::Math::VectorUtil::DeltaR((**iChargedHadrCand).p4(),(*theleadPFChargedHadrCand).p4());
 	++ChargedHadrCands_n;
       }
+      
       for (PFCandidateRefVector::const_iterator iNeutrHadrCand=(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().begin();iNeutrHadrCand!=(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().end();++iNeutrHadrCand){
 	PFTau_NHCandDR[NeutrHadrCands_n]=ROOT::Math::VectorUtil::DeltaR((**iNeutrHadrCand).p4(),(*theleadPFChargedHadrCand).p4());
 	PFTau_NHCandEt[NeutrHadrCands_n]=(**iNeutrHadrCand).et();
 	++NeutrHadrCands_n;
       }
+      
       for (PFCandidateRefVector::const_iterator iGammaCand=(*thePFTau).pfTauTagInfoRef()->PFGammaCands().begin();iGammaCand!=(*thePFTau).pfTauTagInfoRef()->PFGammaCands().end();++iGammaCand){
 	PFTau_GCandDR[GammaCands_n]=ROOT::Math::VectorUtil::DeltaR((**iGammaCand).p4(),(*theleadPFChargedHadrCand).p4());
 	PFTau_GCandEt[GammaCands_n]=(**iGammaCand).et();
 	++GammaCands_n;
       }
+      
       PFCandidateRefVector theSignalPFChargedHadrCands,theSignalPFNeutrHadrCands,theSignalPFGammaCands,theSignalPFCands;
       if (UseCHCandLeadCHCand_tksDZconstraint_ && theleadPFChargedHadrCand_rectkavailable) theSignalPFChargedHadrCands=thePFTauElementsOperators.PFChargedHadrCandsInCone((*theleadPFChargedHadrCand).momentum(),"DR",test_trackersignalcone_size_,test_Cand_minpt_,CHCandLeadCHCand_tksmaxDZ_,theleadPFChargedHadrCand_rectkDZ);
       else theSignalPFChargedHadrCands=thePFTauElementsOperators.PFChargedHadrCandsInCone((*theleadPFChargedHadrCand).momentum(),"DR",test_trackersignalcone_size_,test_Cand_minpt_);
@@ -624,6 +728,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     }
     PFTau_CHCands_number=ChargedHadrCands_n;
     // END ***
+    
     PFTau_GenTau_visproducts_e=-100.;
     PFTau_GenTau_visproducts_et=-100.;
     PFTau_GenTau_visproducts_eta=-100.;
@@ -644,6 +749,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     pair<math::XYZTLorentzVector,int> min1stdeltaR_SimTau_pair;
     double min1stdeltaR_GenJet05_deltaR=100.;
     math::XYZTLorentzVector min1stdeltaR_GenJet05_LorentzVect(0.,0.,0.,0.);
+    
     if (GenTausnumber>0){
       for (vector<pair<math::XYZTLorentzVector,int> >::iterator iGenTau_pair=GenTau_pair.begin();iGenTau_pair!=GenTau_pair.end();iGenTau_pair++) {
 	if (ROOT::Math::VectorUtil::DeltaR((*iGenTau_pair).first,ThePFTauJet_LorentzVect)<min1stdeltaR_GenTau_deltaR) {
@@ -652,6 +758,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	}      
       }
     }
+    
     if (SimTausnumber>0){
       for (vector<pair<math::XYZTLorentzVector,int> >::iterator iSimTau_pair=SimTau_pair.begin();iSimTau_pair!=SimTau_pair.end();iSimTau_pair++) {
 	if (ROOT::Math::VectorUtil::DeltaR((*iSimTau_pair).first,ThePFTauJet_LorentzVect)<min1stdeltaR_SimTau_deltaR) {
@@ -660,6 +767,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	}      
       }
     }
+    
     if (GenJet05snumber>0){
       iGenJet05 = 0;
       for (vector<math::XYZTLorentzVector>::iterator iGenJet05_LorentzVect=GenJet05_LorentzVect.begin();iGenJet05_LorentzVect!=GenJet05_LorentzVect.end();iGenJet05_LorentzVect++) {
@@ -671,6 +779,7 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	++iGenJet05;     
       }
     }
+    
     if (min1stdeltaR_GenTau_deltaR<0.15){
       PFTau_GenTau_visproducts_e=(min1stdeltaR_GenTau_pair).first.E();
       PFTau_GenTau_visproducts_et=(min1stdeltaR_GenTau_pair).first.Et();
