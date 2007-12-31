@@ -56,18 +56,35 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   iEvent.getByLabel(PFTauDiscriminatorByIsolationProducer_,thePFTauDiscriminatorByIsolation);
 
   cout<<"***"<<endl;
-  cout<<"Found "<<thePFTauHandle->size()<<" had. tau-jet candidates"<<endl;
+  cout<<"Found "<<thePFTauHandle->size()<<" hadr. tau-jet candidates ->"<<endl;
+  cout<<endl;
   int i_PFTau=0;
   for (PFTauCollection::size_type iPFTau=0;iPFTau<thePFTauHandle->size();iPFTau++) {
     PFTauRef thePFTau(thePFTauHandle,iPFTau);
     //Prints out some quantities
-    cout<<"Jet Number "<<i_PFTau<<endl;
-    cout<<"PFDiscriminatorByIsolation value "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
-    cout<<"Pt of the PFTau "<<(*thePFTau).pt()<<endl;
-    cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
+    cout<<"PFTau object number "<<i_PFTau<<endl;
+    cout<<"*** check initial PFJet object ***"<<endl;
+    cout<<"Its constituents :"<<endl;
+    CandidateBaseRefVector theCandidateBaseRefVector=(*thePFTau).pfTauTagInfoRef()->pfjetRef()->getJetConstituents();
+    for(unsigned int i_Constit=0;i_Constit!=theCandidateBaseRefVector.size();i_Constit++) { 
+      const PFCandidate* thePFCand=dynamic_cast<const PFCandidate*>(&*(theCandidateBaseRefVector[i_Constit]));
+      cout<<(*thePFCand)<<endl;
+      
+    }
+    cout<<"*** check intermediate PFTauTagInfo object ***"<<endl;
+    cout<<"Its constituents :"<<endl;
     cout<<"# Tracks "<<(*thePFTau).pfTauTagInfoRef()->Tracks().size()<<endl;
+    cout<<"# PF charged hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFChargedHadrCands().size()<<endl;
     cout<<"# PF neutral hadr. cand's "<<(*thePFTau).pfTauTagInfoRef()->PFNeutrHadrCands().size()<<endl;
     cout<<"# PF gamma cand's "<<(*thePFTau).pfTauTagInfoRef()->PFGammaCands().size()<<endl;
+    cout<<"in detail :"<<endl;
+    PFCandidateRefVector myPFCands=(*thePFTau).pfTauTagInfoRef()->PFCands();
+    for (PFCandidateRefVector::const_iterator iCand=myPFCands.begin();iCand!=myPFCands.end();iCand++){
+      cout<<(**iCand)<<endl;
+    }
+    cout<<"*** check final PFTau object ***"<<endl;
+    cout<<"PFDiscriminatorByIsolation value "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
+    cout<<"Pt of the PFTau "<<(*thePFTau).pt()<<endl;
     PFCandidateRef theLeadPFCand = (*thePFTau).leadPFChargedHadrCand();
     if(!theLeadPFCand){
       cout<<"No Lead PFCand "<<endl;
@@ -83,6 +100,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"Sum of Pt of charged hadr. PFCandidates in isolation annulus around Lead PF = "<<(*thePFTau).isolationPFChargedHadrCandsPtSum()<<endl;
       cout<<"Sum of Et of gamma PFCandidates in other isolation annulus around Lead PF = "<<(*thePFTau).isolationPFGammaCandsEtSum()<<endl;	
     }
+    cout<<"***"<<endl;
     i_PFTau++;    
   }    
 }
