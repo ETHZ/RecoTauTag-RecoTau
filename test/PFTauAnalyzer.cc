@@ -643,23 +643,17 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     double thePFTau_refInnerPosition_z=0.;
     int ChargedHadrCands_n=0;
     if(theleadPFChargedHadrCand.isNonnull()){    
-      // search for the track which is the main constituent of a ch. hadr. cand. ...
-      if ((*theleadPFChargedHadrCand).blockRef()->elements().size()!=0){ 
-	for (OwnVector<PFBlockElement>::const_iterator iPFBlockElement=(*theleadPFChargedHadrCand).blockRef()->elements().begin();iPFBlockElement!=(*theleadPFChargedHadrCand).blockRef()->elements().end();iPFBlockElement++){
-	  if ((*iPFBlockElement).type()==PFBlockElement::TRACK && ROOT::Math::VectorUtil::DeltaR((*theleadPFChargedHadrCand).momentum(),(*iPFBlockElement).trackRef()->momentum())<0.001){
-	    TrackRef theleadPFChargedHadrCand_rectk=(*iPFBlockElement).trackRef();
-	    if(theleadPFChargedHadrCand_rectk.isNonnull()){
-	      theleadPFChargedHadrCand_rectkavailable=true;
-	      theleadPFChargedHadrCand_rectkDZ=(*theleadPFChargedHadrCand_rectk).dz();
-	      if((*theleadPFChargedHadrCand_rectk).innerOk()){
-		thePFTau_refInnerPosition_x=(*theleadPFChargedHadrCand_rectk).innerPosition().x(); 
-		thePFTau_refInnerPosition_y=(*theleadPFChargedHadrCand_rectk).innerPosition().y(); 
-		thePFTau_refInnerPosition_z=(*theleadPFChargedHadrCand_rectk).innerPosition().z(); 
-	      }
-	    }
-	  }
+      // search for the Track which is the main constituent of a charged hadron PFCandidate ...
+      TrackRef theleadPFChargedHadrCand_rectk=(*theleadPFChargedHadrCand).trackRef();
+      if(theleadPFChargedHadrCand_rectk.isNonnull()){
+	theleadPFChargedHadrCand_rectkavailable=true;
+	theleadPFChargedHadrCand_rectkDZ=(*theleadPFChargedHadrCand_rectk).dz();
+	if((*theleadPFChargedHadrCand_rectk).innerOk()){
+	  thePFTau_refInnerPosition_x=(*theleadPFChargedHadrCand_rectk).innerPosition().x(); 
+	  thePFTau_refInnerPosition_y=(*theleadPFChargedHadrCand_rectk).innerPosition().y(); 
+	  thePFTau_refInnerPosition_z=(*theleadPFChargedHadrCand_rectk).innerPosition().z(); 
 	}
-      }
+      }    	      
         
       int NeutrHadrCands_n=0;
       int GammaCands_n=0;
@@ -669,16 +663,10 @@ void PFTauAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	  if (!theleadPFChargedHadrCand_rectkavailable) continue; // ch. hadr. cand. w/o track ???
 	  bool iChargedHadrCand_rectkavailable=false;
 	  double iChargedHadrCand_rectkDZ=0.;
-	  if ((**iChargedHadrCand).blockRef()->elements().size()!=0){
-	    for (OwnVector<PFBlockElement>::const_iterator iPFBlockElement=(**iChargedHadrCand).blockRef()->elements().begin();iPFBlockElement!=(**iChargedHadrCand).blockRef()->elements().end();iPFBlockElement++){
-	      if ((*iPFBlockElement).type()==PFBlockElement::TRACK && ROOT::Math::VectorUtil::DeltaR((**iChargedHadrCand).momentum(),(*iPFBlockElement).trackRef()->momentum())<0.001){
-		TrackRef iChargedHadrCand_rectk=(*iPFBlockElement).trackRef();
-		if(iChargedHadrCand_rectk.isNonnull()){
-		  iChargedHadrCand_rectkavailable=true;
-		  iChargedHadrCand_rectkDZ=(*iChargedHadrCand_rectk).dz();
-		}
-	      }
-	    }
+	  TrackRef iChargedHadrCand_rectk=(**iChargedHadrCand).trackRef();
+	  if(iChargedHadrCand_rectk.isNonnull()){
+	    iChargedHadrCand_rectkavailable=true;
+	    iChargedHadrCand_rectkDZ=(*iChargedHadrCand_rectk).dz();
 	  }
 	  if (!iChargedHadrCand_rectkavailable || fabs(iChargedHadrCand_rectkDZ-theleadPFChargedHadrCand_rectkDZ)>CHCandLeadCHCand_tksmaxDZ_) continue;
 	}
