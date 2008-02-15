@@ -1,7 +1,6 @@
 module caloRecoTauProducer = CaloRecoTauProducer{
   InputTag CaloRecoTauTagInfoProducer       = caloRecoTauTagInfoProducer
-  #string PVProducer                         = "pixelVertices"  # ***  
-  string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"  # ***    
+  string PVProducer                         = "offlinePrimaryVertices"  # ***    
   double smearedPVsigmaX                    = 0.0015
   double smearedPVsigmaY                    = 0.0015
   double smearedPVsigmaZ                    = 0.0050
