@@ -2,14 +2,14 @@ module pfRecoTauTagInfoProducer=PFRecoTauTagInfoProducer {
     string PFCandidateProducer                = "particleFlow"
     string PFJetTracksAssociatorProducer      = "ic5PFJetTracksAssociatorAtVertex"
     #string PVProducer                         = "pixelVertices"
-    string PVProducer                         = "offlinePrimaryVertices"
+    string PVProducer                         = "offlinePrimaryVerticesFromCTFTracks"
     double smearedPVsigmaX                    = 0.0015
     double smearedPVsigmaY                    = 0.0015
     double smearedPVsigmaZ                    = 0.0050
     # parameters of the considered charged hadr. PFCandidates, based on their rec. Track properties :
     double ChargedHadrCand_tkminPt            = 1.
     int32 ChargedHadrCand_tkminPixelHitsn     = 2
-    int32 ChargedHadrCand_tkminTrackerHitsn   = 8
+    int32 ChargedHadrCand_tkminTrackerHitsn   = 3
     double ChargedHadrCand_tkmaxipt           = 0.03
     double ChargedHadrCand_tkmaxChi2          = 100.
     # parameters of the considered neutral hadr. PFCandidates, based on their rec. HCAL cluster properties : 
