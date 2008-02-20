@@ -6,6 +6,7 @@
 
 #include "DataFormats/TauReco/interface/CaloTau.h"
 #include "DataFormats/TauReco/interface/CaloTauDiscriminatorByIsolation.h"
+#include "DataFormats/TauReco/interface/CaloTauDiscriminatorAgainstElectron.h"
 
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
@@ -35,12 +36,14 @@ public:
 private:
   string CaloTauProducer_;
   string CaloTauDiscriminatorByIsolationProducer_;
+  string CaloTauDiscriminatorAgainstElectronProducer_;
   int nEvent;
 };
 
 CaloTauTest::CaloTauTest(const ParameterSet& iConfig){
   CaloTauProducer_                            = iConfig.getParameter<string>("CaloTauProducer");
   CaloTauDiscriminatorByIsolationProducer_    = iConfig.getParameter<string>("CaloTauDiscriminatorByIsolationProducer");
+  CaloTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("CaloTauDiscriminatorAgainstElectronProducer");
   nEvent=0;
 }
 
@@ -57,6 +60,9 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   Handle<CaloTauDiscriminatorByIsolation> theCaloTauDiscriminatorByIsolation;
   iEvent.getByLabel(CaloTauDiscriminatorByIsolationProducer_,theCaloTauDiscriminatorByIsolation);
 
+  Handle<CaloTauDiscriminatorAgainstElectron> theCaloTauDiscriminatorAgainstElectron;
+  iEvent.getByLabel(CaloTauDiscriminatorAgainstElectronProducer_,theCaloTauDiscriminatorAgainstElectron);
+
   cout<<"***"<<endl;
   cout<<"Found "<<theCaloTauHandle->size()<<" had. tau-jet candidates"<<endl;
   int i_CaloTau=0;
@@ -66,6 +72,7 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     cout<<"***"<<endl;
     cout<<"Jet Number "<<i_CaloTau<<endl;
     cout<<"CaloDiscriminatorByIsolation value "<<(*theCaloTauDiscriminatorByIsolation)[theCaloTau]<<endl;
+    cout<<"CaloDiscriminatorAgainstElectron value "<<(*theCaloTauDiscriminatorAgainstElectron)[theCaloTau]<<endl;
     cout<<"Pt of the CaloTau (GeV/c) "<<(*theCaloTau).pt()<<endl;
     cout<<"InvariantMass of the Tracks + neutral ECAL Island BasicClusters system (GeV/c2) "<<(*theCaloTau).alternatLorentzVect().M()<<endl;
     cout<<"InvariantMass of the Tracks system (GeV/c2) "<<(*theCaloTau).TracksInvariantMass()<<endl;
@@ -85,6 +92,8 @@ void CaloTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       cout<<"# Isolation Tracks "<<(*theCaloTau).isolationTracks().size()<<endl;
       cout<<"Sum of Pt of the Tracks in isolation annulus around Lead Tk (GeV/c) "<<(*theCaloTau).isolationTracksPtSum()<<endl;
       cout<<"Sum of Et of the ECAL RecHits in other isolation annulus around Lead Tk (GeV) "<<(*theCaloTau).isolationECALhitsEtSum()<<endl;
+      cout<<"Sum of Et of the HCAL hits inside a 3x3 calo. tower matrix centered on direction of propag. leading Track - ECAL inner surf. contact point (GeV) "<<(*theCaloTau).leadTrackHCAL3x3hitsEtSum()<<endl;
+      cout<<"|DEta| between direction of propag. leading Track - ECAL inner surf. contact point and direction of highest Et hit among HCAL hits inside a 3x3 calo. tower matrix centered on direction of propag. leading Track - ECAL inner surf. contact point "<<(*theCaloTau).leadTrackHCAL3x3hottesthitDEta()<<endl;
     }
     i_CaloTau++;    
   }    
