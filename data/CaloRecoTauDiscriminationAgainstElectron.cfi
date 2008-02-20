@@ -1,0 +1,7 @@
+module caloRecoTauDiscriminationAgainstElectron=CaloRecoTauDiscriminationAgainstElectron {
+    string CaloTauProducer                            = "caloRecoTauProducer" 
+    double leadTrack_HCAL3x3hitsEtSumOverPt_minvalue  = 0.1
+    bool ApplyCut_maxleadTrackHCAL3x3hottesthitDEta   = false
+    double maxleadTrackHCAL3x3hottesthitDEta          = 0.1
+    bool ApplyCut_leadTrackavoidsECALcrack            = true
+}
