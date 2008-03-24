@@ -1,4 +1,5 @@
 include "RecoJets/JetAssociationProducers/data/ic5PFJetTracksAssociatorAtVertex.cfi"
+include "RecoJets/JetProducers/data/iterativeCone5PFJets.cff"
 include "RecoTauTag/RecoTau/data/PFRecoTauTagInfoProducer.cfi"   
 include "RecoTauTag/RecoTau/data/PFRecoTauProducer.cfi"
 sequence PFTau = {particleFlowJetCandidates,iterativeCone5PFJets,ic5PFJetTracksAssociatorAtVertex,pfRecoTauTagInfoProducer,pfRecoTauProducer} 
