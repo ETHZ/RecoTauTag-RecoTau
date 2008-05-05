@@ -1,0 +1,22 @@
+module pfRecoTauDiscriminationAgainstElectron=PFRecoTauDiscriminationAgainstElectron {
+    string PFTauProducer                            = "pfRecoTauProducer" 
+
+    bool ApplyCut_EmFraction   = false
+    double EmFraction_maxValue  = 0.9
+    bool ApplyCut_HcalTotOverPLead   = false
+    double HcalTotOverPLead_minValue  = 0.1
+    bool ApplyCut_HcalMaxOverPLead   = false
+    double HcalMaxOverPLead_minValue  = 0.1
+    bool ApplyCut_Hcal3x3OverPLead   = false
+    double Hcal3x3OverPLead_minValue  = 0.1
+    bool ApplyCut_EcalStripSumEOverPLead   = false
+    double EcalStripSumEOverPLead_minValue  = 0.8
+    double EcalStripSumEOverPLead_maxValue  = 1.8
+    bool ApplyCut_BremsRecoveryEOverPLead   = false
+    double BremsRecoveryEOverPLead_minValue  = 0.8
+    double BremsRecoveryEOverPLead_maxValue  = 1.8
+
+    bool ApplyCut_ElectronPreID   = true
+
+
+}

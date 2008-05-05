@@ -6,6 +6,7 @@
 
 #include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauDiscriminatorByIsolation.h"
+#include "DataFormats/TauReco/interface/PFTauDiscriminator.h"
 
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
@@ -34,12 +35,14 @@ public:
 private:
   string PFTauProducer_;
   string PFTauDiscriminatorByIsolationProducer_;
+  string PFTauDiscriminatorAgainstElectronProducer_;
   int nEvent;
 };
 
 PFTauTest::PFTauTest(const ParameterSet& iConfig){
   PFTauProducer_                         = iConfig.getParameter<string>("PFTauProducer");
   PFTauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("PFTauDiscriminatorByIsolationProducer");
+  PFTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstElectronProducer");
   nEvent=0;
 }
 
@@ -55,14 +58,17 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   Handle<PFTauDiscriminatorByIsolation> thePFTauDiscriminatorByIsolation;
   iEvent.getByLabel(PFTauDiscriminatorByIsolationProducer_,thePFTauDiscriminatorByIsolation);
 
+  Handle<PFTauDiscriminator> thePFTauDiscriminatorAgainstElectron;
+  iEvent.getByLabel(PFTauDiscriminatorAgainstElectronProducer_,thePFTauDiscriminatorAgainstElectron);
+
   cout<<"***"<<endl;
   cout<<"Found "<<thePFTauHandle->size()<<" hadr. tau-jet candidates ->"<<endl;
   cout<<endl;
   int i_PFTau=0;
   //  for (PFTauCollection::size_type iPFTau=0;iPFTau<thePFTauHandle->size();iPFTau++) {
- const PFTauCollection & myTau  = *(thePFTauHandle.product()); 
-    for(PFTauCollection::const_iterator pippo = myTau.begin();pippo!=myTau.end();pippo++){
-      //PFTauRef thePFTau(thePFTauHandle,iPFTau);
+  const PFTauCollection & myTau  = *(thePFTauHandle.product()); 
+  for(PFTauCollection::const_iterator pippo = myTau.begin();pippo!=myTau.end();pippo++){
+    //PFTauRef thePFTau(thePFTauHandle,iPFTau);
     //Prints out some quantities
     cout<<"PFTau object number "<<i_PFTau<<endl;
     cout<<"*** check initial PFJet object ***"<<endl;
