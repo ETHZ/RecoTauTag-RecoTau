@@ -17,6 +17,10 @@ module pfRecoTauDiscriminationAgainstElectron=PFRecoTauDiscriminationAgainstElec
     double BremsRecoveryEOverPLead_maxValue  = 1.8
 
     bool ApplyCut_ElectronPreID   = true
+    double ElecPreID0_SumEOverPLead_maxValue  = 0.95
+    double ElecPreID0_Hcal3x3_minValue  = 0.05
+    double ElecPreID1_SumEOverPLead_maxValue  = 0.85
 
+    bool ApplyCut_EcalCrack_ = true;
 
 }
