@@ -36,6 +36,7 @@ private:
   string PFTauProducer_;
   string PFTauDiscriminatorByIsolationProducer_;
   string PFTauDiscriminatorAgainstElectronProducer_;
+  string PFTauDiscriminatorAgainstMuonProducer_;
   int nEvent;
 };
 
@@ -43,6 +44,7 @@ PFTauTest::PFTauTest(const ParameterSet& iConfig){
   PFTauProducer_                         = iConfig.getParameter<string>("PFTauProducer");
   PFTauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("PFTauDiscriminatorByIsolationProducer");
   PFTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstElectronProducer");
+  PFTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstMuonProducer");
   nEvent=0;
 }
 
@@ -60,6 +62,9 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 
   Handle<PFTauDiscriminator> thePFTauDiscriminatorAgainstElectron;
   iEvent.getByLabel(PFTauDiscriminatorAgainstElectronProducer_,thePFTauDiscriminatorAgainstElectron);
+
+  Handle<PFTauDiscriminator> thePFTauDiscriminatorAgainstMuon;
+  iEvent.getByLabel(PFTauDiscriminatorAgainstMuonProducer_,thePFTauDiscriminatorAgainstMuon);
 
   cout<<"***"<<endl;
   cout<<"Found "<<thePFTauHandle->size()<<" hadr. tau-jet candidates ->"<<endl;
