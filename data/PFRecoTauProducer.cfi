@@ -2,6 +2,7 @@ module pfRecoTauProducer = PFRecoTauProducer{
   InputTag PFTauTagInfoProducer                = pfRecoTauTagInfoProducer
   string PVProducer                            = "offlinePrimaryVertices"  # ***    
   #string PVProducer                            = "pixelVertices"  # ***  
+  InputTag ElectronPreIDProducer               = elecpreid
   double smearedPVsigmaX                       = 0.0015
   double smearedPVsigmaY                       = 0.0015
   double smearedPVsigmaZ                       = 0.0050
@@ -60,4 +61,13 @@ module pfRecoTauProducer = PFRecoTauProducer{
   #    if XXXConeSizeFormula>XXXConeSize_max then XXXConeSize_max is the considered cone size ; if XXXConeSizeFormula<XXXConeSize_min then XXXConeSize_min is the considered cone size;  
 
   # *** a PV is needed for computing a leading (charged hadron PFCand) rec. tk signed transverse impact parameter. 
+
+  # For electron rejection variable
+  double ElecPreIDLeadTkMatch_maxDR = 0.01
+  double EcalStripSumE_minClusEnergy = 0.1
+  double EcalStripSumE_deltaEta = 0.03
+  double EcalStripSumE_deltaPhiOverQ_minValue = -0.1
+  double EcalStripSumE_deltaPhiOverQ_maxValue = 0.5
+
+
 }
