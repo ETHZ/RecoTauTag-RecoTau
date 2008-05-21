@@ -78,9 +78,9 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     cout<<"PFTau object number "<<i_PFTau<<endl;
     cout<<"*** check initial PFJet object ***"<<endl;
     cout<<"Its constituents :"<<endl;
-    CandidateBaseRefVector theCandidateBaseRefVector=(*pippo).pfTauTagInfoRef()->pfjetRef()->getJetConstituents();
-    for(unsigned int i_Constit=0;i_Constit!=theCandidateBaseRefVector.size();i_Constit++) { 
-      const PFCandidate* thePFCand=dynamic_cast<const PFCandidate*>(&*(theCandidateBaseRefVector[i_Constit]));
+    vector<CandidatePtr> theCandidateBasePtrVector=(*pippo).pfTauTagInfoRef()->pfjetRef()->getJetConstituents();
+    for(unsigned int i_Constit=0;i_Constit!=theCandidateBasePtrVector.size();i_Constit++) { 
+      const PFCandidate* thePFCand=dynamic_cast<const PFCandidate*>(&*(theCandidateBasePtrVector[i_Constit]));
       cout<<*(thePFCand)<<endl;
       
     }
