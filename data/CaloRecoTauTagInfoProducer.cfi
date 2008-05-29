@@ -17,8 +17,8 @@ module caloRecoTauTagInfoProducer=CaloRecoTauTagInfoProducer {
     InputTag EBRecHitsSource = ecalRecHit:EcalRecHitsEB
     InputTag EERecHitsSource = ecalRecHit:EcalRecHitsEE
     InputTag ESRecHitsSource = ecalPreshowerRecHit:EcalRecHitsES
-    InputTag BarrelBasicClustersSource = islandBasicClusters:islandBarrelBasicClusters
-    InputTag EndcapBasicClustersSource = islandBasicClusters:islandEndcapBasicClusters
+    InputTag BarrelBasicClustersSource = hybridSuperClusters
+    InputTag EndcapBasicClustersSource = multi5x5BasicClusters
 
     # parameters of the considered neutral ECAL BasicClusters
     double ECALBasicClustersAroundCaloJet_DRConeSize      = 0.5
