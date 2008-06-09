@@ -73,7 +73,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   //  for (PFTauCollection::size_type iPFTau=0;iPFTau<thePFTauHandle->size();iPFTau++) {
   const PFTauCollection & myTau  = *(thePFTauHandle.product()); 
   for(PFTauCollection::const_iterator pippo = myTau.begin();pippo!=myTau.end();pippo++){
-    //PFTauRef thePFTau(thePFTauHandle,iPFTau);
+    PFTauRef thePFTau(thePFTauHandle,i_PFTau);
     //Prints out some quantities
     cout<<"PFTau object number "<<i_PFTau<<endl;
     cout<<"*** check initial PFJet object ***"<<endl;
@@ -87,7 +87,16 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     cout<<"*** check intermediate PFTauTagInfo object ***"<<endl;
     cout <<*(pippo);
     cout<<"***"<<endl;
-    i_PFTau++;    
+    cout<<"**** Discriminators "<<endl;
+    float discriminator = (*thePFTauDiscriminatorByIsolation)[thePFTau];
+    cout<<"     Isolation "<< discriminator <<endl;
+    discriminator = (*thePFTauDiscriminatorAgainstElectron)[thePFTau];
+      cout<<"     Against Electrons "<< discriminator<<endl;
+    discriminator = (*thePFTauDiscriminatorAgainstMuon)[thePFTau];
+    cout<<"     Against Muons "<<discriminator <<endl;
+
+    i_PFTau++;  
+
   }    
 }
 void PFTauTest::endJob(){}
