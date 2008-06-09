@@ -44,7 +44,7 @@ PFTauTest::PFTauTest(const ParameterSet& iConfig){
   PFTauProducer_                         = iConfig.getParameter<string>("PFTauProducer");
   PFTauDiscriminatorByIsolationProducer_ = iConfig.getParameter<string>("PFTauDiscriminatorByIsolationProducer");
   PFTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstElectronProducer");
-  PFTauDiscriminatorAgainstElectronProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstMuonProducer");
+  PFTauDiscriminatorAgainstMuonProducer_    = iConfig.getParameter<string>("PFTauDiscriminatorAgainstMuonProducer");
   nEvent=0;
 }
 
