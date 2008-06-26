@@ -24,6 +24,7 @@
 #include <TFile.h>
 #include <TCanvas.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <TDirectory.h>
 
 #include "FWCore/ServiceRegistry/interface/Service.h" // Framework services
@@ -65,10 +66,6 @@ private:
   TFile *_file;
   TDirectory *_dir;
 
-  // Efficiency plots
-  TH1F* h_TauEff_ElecPreID;
-  TH1F* h_ElecEff_ElecPreID;
-  
   // Gen Objects
   std::vector<TLorentzVector> _GenElecs;
   std::vector<TLorentzVector> _GenMuons;
@@ -76,7 +73,33 @@ private:
   std::vector<TLorentzVector> _GenTauMuons;
   std::vector<TLorentzVector> _GenTauHads;
 
+  // Efficiency plots
+  TH1F* h_TauEff_ElecPreID;
+  TH1F* h_ElecEff_ElecPreID;
 
+  TH1F* h_TauEff_EoP;
+  TH1F* h_TauEff_HoP;
+  TH2F* h_TauEff_HvsEoP;
+
+  TH1F* h_TauEff_eid0_EoP;
+  TH1F* h_TauEff_eid0_HoP;
+  TH2F* h_TauEff_eid0_HvsEoP;
+
+  TH1F* h_TauEff_eid1_EoP;
+  TH1F* h_TauEff_eid1_HoP;
+  TH2F* h_TauEff_eid1_HvsEoP;
+
+  TH1F* h_ElecEff_EoP;
+  TH1F* h_ElecEff_HoP;
+  TH2F* h_ElecEff_HvsEoP;
+
+  TH1F* h_ElecEff_eid0_EoP;
+  TH1F* h_ElecEff_eid0_HoP;
+  TH2F* h_ElecEff_eid0_HvsEoP;
+
+  TH1F* h_ElecEff_eid1_EoP;
+  TH1F* h_ElecEff_eid1_HoP;
+  TH2F* h_ElecEff_eid1_HvsEoP;
 };
 
 PFTauTest::PFTauTest(const ParameterSet& iConfig){
@@ -95,9 +118,6 @@ PFTauTest::PFTauTest(const ParameterSet& iConfig){
   nTauNonElecPreID=0;
   nElecNonElecPreID=0;
 
-}
-
-void PFTauTest::beginJob(){
   edm::Service<TFileService> fs;
   TFileDirectory dir = fs->mkdir("histos");
 
@@ -107,6 +127,52 @@ void PFTauTest::beginJob(){
   h_ElecEff_ElecPreID = dir.make<TH1F>("ElecEff_ElecPreID","ElecEff_ElecPreID",3,0.,1.01);
   h_ElecEff_ElecPreID->Sumw2();
 
+  h_TauEff_EoP = dir.make<TH1F>("TauEff_EoP","TauEff_EoP",100,0.,5.);
+  h_TauEff_EoP->Sumw2();
+  h_TauEff_HoP = dir.make<TH1F>("TauEff_HoP","TauEff_HoP",100,0.,5.);
+  h_TauEff_HoP->Sumw2();
+  h_TauEff_HvsEoP = dir.make<TH2F>("TauEff_HvsEoP","TauEff_HvsEoP",60,0.,4.,60,0.,4.);
+  h_TauEff_HvsEoP->Sumw2();
+
+  h_TauEff_eid0_EoP = dir.make<TH1F>("TauEff_eid0_EoP","TauEff_eid0_EoP",100,0.,5.);
+  h_TauEff_eid0_EoP->Sumw2();
+  h_TauEff_eid0_HoP = dir.make<TH1F>("TauEff_eid0_HoP","TauEff_eid0_HoP",100,0.,5.);
+  h_TauEff_eid0_HoP->Sumw2();
+  h_TauEff_eid0_HvsEoP = dir.make<TH2F>("TauEff_eid0_HvsEoP","TauEff_eid0_HvsEoP",60,0.,4.,60,0.,4.);
+  h_TauEff_eid0_HvsEoP->Sumw2();
+
+  h_TauEff_eid1_EoP = dir.make<TH1F>("TauEff_eid1_EoP","TauEff_eid1_EoP",100,0.,5.);
+  h_TauEff_eid1_EoP->Sumw2();
+  h_TauEff_eid1_HoP = dir.make<TH1F>("TauEff_eid1_HoP","TauEff_eid1_HoP",100,0.,5.);
+  h_TauEff_eid1_HoP->Sumw2();
+  h_TauEff_eid1_HvsEoP = dir.make<TH2F>("TauEff_eid1_HvsEoP","TauEff_eid1_HvsEoP",60,0.,4.,60,0.,4.);
+  h_TauEff_eid1_HvsEoP->Sumw2();
+
+  
+  h_ElecEff_EoP = dir.make<TH1F>("ElecEff_EoP","ElecEff_EoP",100,0.,5.);
+  h_ElecEff_EoP->Sumw2();
+  h_ElecEff_HoP = dir.make<TH1F>("ElecEff_HoP","ElecEff_HoP",100,0.,5.);
+  h_ElecEff_HoP->Sumw2();
+  h_ElecEff_HvsEoP = dir.make<TH2F>("ElecEff_HvsEoP","ElecEff_HvsEoP",60,0.,4.,60,0.,4.);
+  h_ElecEff_HvsEoP->Sumw2();
+
+  h_ElecEff_eid0_EoP = dir.make<TH1F>("ElecEff_eid0_EoP","ElecEff_eid0_EoP",100,0.,5.);
+  h_ElecEff_eid0_EoP->Sumw2();
+  h_ElecEff_eid0_HoP = dir.make<TH1F>("ElecEff_eid0_HoP","ElecEff_eid0_HoP",100,0.,5.);
+  h_ElecEff_eid0_HoP->Sumw2();
+  h_ElecEff_eid0_HvsEoP = dir.make<TH2F>("ElecEff_eid0_HvsEoP","ElecEff_eid0_HvsEoP",60,0.,4.,60,0.,4.);
+  h_ElecEff_eid0_HvsEoP->Sumw2();
+
+  h_ElecEff_eid1_EoP = dir.make<TH1F>("ElecEff_eid1_EoP","ElecEff_eid1_EoP",100,0.,5.);
+  h_ElecEff_eid1_EoP->Sumw2();
+  h_ElecEff_eid1_HoP = dir.make<TH1F>("ElecEff_eid1_HoP","ElecEff_eid1_HoP",100,0.,5.);
+  h_ElecEff_eid1_HoP->Sumw2();
+  h_ElecEff_eid1_HvsEoP = dir.make<TH2F>("ElecEff_eid1_HvsEoP","ElecEff_eid1_HvsEoP",60,0.,4.,60,0.,4.);
+  h_ElecEff_eid1_HvsEoP->Sumw2();
+
+}
+
+void PFTauTest::beginJob(){
 }
 
 void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
@@ -257,25 +323,35 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 	      nTauMatchPFTau++;
 	      
 	      /*
-	      */
 		if ((*thePFTau).electronPreIDDecision()) {
 		cout<<"****************************"<<endl;
 		cout<<(*thePFTau).et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
 		cout<<(*thePFTau).electronPreIDDecision()<<" "<<(*thePFTau).emFraction()<<" "<<(*thePFTau).hcal3x3OverPLead()<<endl;
 		}
-	      /*
 	      */
+	      
+	      h_TauEff_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+	      h_TauEff_HoP->Fill((*thePFTau).hcalTotOverPLead());
+	      h_TauEff_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
+	      
 	      if ((*thePFTau).electronPreIDDecision()) {
+		h_TauEff_ElecPreID->Fill(1.);
+		h_TauEff_eid1_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+		h_TauEff_eid1_HoP->Fill((*thePFTau).hcalTotOverPLead());
+		h_TauEff_eid1_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
 		nTauElecPreID++;		
 	      } else {
+		h_TauEff_ElecPreID->Fill(0.);
+		h_TauEff_ElecPreID->Fill(1.);
+		h_TauEff_eid0_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+		h_TauEff_eid0_HoP->Fill((*thePFTau).hcalTotOverPLead());
+		h_TauEff_eid0_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
 		nTauNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
-		//h_TauEff_ElecPreID->Fill(1.);
 		////nTauNonElecPreID++;
 	      } else {
-		//h_TauEff_ElecPreID->Fill(0.);
 		////nTauElecPreID++;
 	      }
 	    }
@@ -320,16 +396,26 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 		cout<<(*thePFTau).electronPreIDDecision()<<" "<<(*thePFTau).emFraction()<<" "<<(*thePFTau).hcal3x3OverPLead()<<endl;
 		}
 	      */
-	      /*
-	      */
+
+	      h_ElecEff_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+	      h_ElecEff_HoP->Fill((*thePFTau).hcalTotOverPLead());
+	      h_ElecEff_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
+	      
 	      if ((*thePFTau).electronPreIDDecision()) {
+		h_ElecEff_ElecPreID->Fill(1.);
+		h_ElecEff_eid1_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+		h_ElecEff_eid1_HoP->Fill((*thePFTau).hcalTotOverPLead());
+		h_ElecEff_eid1_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
 		nElecElecPreID++;		
 	      } else {
+		h_ElecEff_ElecPreID->Fill(0.);
+		h_ElecEff_eid0_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
+		h_ElecEff_eid0_HoP->Fill((*thePFTau).hcalTotOverPLead());
+		h_ElecEff_eid0_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
 		nElecNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
-		//h_ElecEff_ElecPreID->Fill(1.);
 		////nElecNonElecPreID++;
 		
 		//cout<<"****************************"<<endl;
@@ -337,7 +423,6 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 		//cout<<(*thePFTau).electronPreIDDecision()<<" "<<(*thePFTau).emFraction()<<" "<<(*thePFTau).hcal3x3OverPLead()<<endl;
 		
 	      } else {
-		//h_ElecEff_ElecPreID->Fill(0.);
 		////nElecElecPreID++;		
 	      }
 	    }
