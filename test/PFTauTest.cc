@@ -266,17 +266,17 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 	      /*
 	      */
 	      if ((*thePFTau).electronPreIDDecision()) {
-		////nTauElecPreID++;		
+		nTauElecPreID++;		
 	      } else {
-		////nTauNonElecPreID++;		
+		nTauNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
 		//h_TauEff_ElecPreID->Fill(1.);
-		nTauNonElecPreID++;
+		////nTauNonElecPreID++;
 	      } else {
 		//h_TauEff_ElecPreID->Fill(0.);
-		nTauElecPreID++;
+		////nTauElecPreID++;
 	      }
 	    }
 	  }
@@ -323,14 +323,14 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 	      /*
 	      */
 	      if ((*thePFTau).electronPreIDDecision()) {
-		////nElecElecPreID++;		
+		nElecElecPreID++;		
 	      } else {
-		////nElecNonElecPreID++;		
+		nElecNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
 		//h_ElecEff_ElecPreID->Fill(1.);
-		nElecNonElecPreID++;
+		////nElecNonElecPreID++;
 		
 		//cout<<"****************************"<<endl;
 		//cout<<(*thePFTau).et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
@@ -338,7 +338,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 		
 	      } else {
 		//h_ElecEff_ElecPreID->Fill(0.);
-		nElecElecPreID++;		
+		////nElecElecPreID++;		
 	      }
 	    }
 	  }
