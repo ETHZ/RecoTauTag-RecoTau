@@ -76,6 +76,8 @@ private:
   // Efficiency plots
   TH1F* h_TauEff_ElecPreID;
   TH1F* h_ElecEff_ElecPreID;
+  TH1F* h_TauEff_PFTauD;
+  TH1F* h_ElecEff_PFTauD;
 
   TH1F* h_TauEff_EoP;
   TH1F* h_TauEff_HoP;
@@ -126,6 +128,10 @@ PFTauTest::PFTauTest(const ParameterSet& iConfig){
   h_TauEff_ElecPreID->Sumw2();
   h_ElecEff_ElecPreID = dir.make<TH1F>("ElecEff_ElecPreID","ElecEff_ElecPreID",3,0.,1.01);
   h_ElecEff_ElecPreID->Sumw2();
+  h_TauEff_PFTauD = dir.make<TH1F>("TauEff_PFTauD","TauEff_PFTauD",3,0.,1.01);
+  h_TauEff_PFTauD->Sumw2();
+  h_ElecEff_PFTauD = dir.make<TH1F>("ElecEff_PFTauD","ElecEff_PFTauD",3,0.,1.01);
+  h_ElecEff_PFTauD->Sumw2();
 
   h_TauEff_EoP = dir.make<TH1F>("TauEff_EoP","TauEff_EoP",100,0.,5.);
   h_TauEff_EoP->Sumw2();
@@ -339,20 +345,22 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 		h_TauEff_eid1_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
 		h_TauEff_eid1_HoP->Fill((*thePFTau).hcalTotOverPLead());
 		h_TauEff_eid1_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
-		nTauElecPreID++;		
+		////nTauElecPreID++;		
 	      } else {
 		h_TauEff_ElecPreID->Fill(0.);
 		h_TauEff_ElecPreID->Fill(1.);
 		h_TauEff_eid0_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
 		h_TauEff_eid0_HoP->Fill((*thePFTau).hcalTotOverPLead());
 		h_TauEff_eid0_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
-		nTauNonElecPreID++;		
+		////nTauNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
-		////nTauNonElecPreID++;
+		h_TauEff_PFTauD->Fill(1.);
+		nTauNonElecPreID++;
 	      } else {
-		////nTauElecPreID++;
+		h_TauEff_PFTauD->Fill(0.);
+		nTauElecPreID++;
 	      }
 	    }
 	  }
@@ -406,24 +414,25 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
 		h_ElecEff_eid1_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
 		h_ElecEff_eid1_HoP->Fill((*thePFTau).hcalTotOverPLead());
 		h_ElecEff_eid1_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
-		nElecElecPreID++;		
+		////nElecElecPreID++;		
 	      } else {
 		h_ElecEff_ElecPreID->Fill(0.);
 		h_ElecEff_eid0_EoP->Fill((*thePFTau).ecalStripSumEOverPLead());
 		h_ElecEff_eid0_HoP->Fill((*thePFTau).hcalTotOverPLead());
 		h_ElecEff_eid0_HvsEoP->Fill((*thePFTau).ecalStripSumEOverPLead(),(*thePFTau).hcalTotOverPLead());
-		nElecNonElecPreID++;		
+		////nElecNonElecPreID++;		
 	      }
 	      //cout<<"DiscriminatorAgainstElectron: "<<(*thePFTauDiscriminatorAgainstElectron)[thePFTau]<<endl;
 	      if ((*thePFTauDiscriminatorAgainstElectron)[thePFTau] == 1) {
-		////nElecNonElecPreID++;
-		
+		h_ElecEff_PFTauD->Fill(1.);
+		nElecNonElecPreID++;
 		//cout<<"****************************"<<endl;
 		//cout<<(*thePFTau).et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
 		//cout<<(*thePFTau).electronPreIDDecision()<<" "<<(*thePFTau).emFraction()<<" "<<(*thePFTau).hcal3x3OverPLead()<<endl;
 		
 	      } else {
-		////nElecElecPreID++;		
+		h_ElecEff_PFTauD->Fill(0.);
+		nElecElecPreID++;		
 	      }
 	    }
 	  }
