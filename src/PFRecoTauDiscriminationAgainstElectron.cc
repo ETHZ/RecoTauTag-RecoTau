@@ -4,10 +4,6 @@ void PFRecoTauDiscriminationAgainstElectron::produce(Event& iEvent,const EventSe
   Handle<PFTauCollection> thePFTauCollection;
   iEvent.getByLabel(PFTauProducer_,thePFTauCollection);
 
-  ESHandle<MagneticField> myMF;
-  iEventSetup.get<IdealMagneticFieldRecord>().get(myMF);
-  const MagneticField* MagneticField = myMF.product(); 
-
   // fill the AssociationVector object
   auto_ptr<PFTauDiscriminator> thePFTauDiscriminatorAgainstElectron(new PFTauDiscriminator(PFTauRefProd(thePFTauCollection)));
 
@@ -18,25 +14,20 @@ void PFRecoTauDiscriminationAgainstElectron::produce(Event& iEvent,const EventSe
     TrackRef myleadTk;
     if((*thePFTauRef).leadPFChargedHadrCand().isNonnull()){
       myleadTk=(*thePFTauRef).leadPFChargedHadrCand()->trackRef();
-      math::XYZPoint myleadTkEcalPos;
-      
+      math::XYZPointF myleadTkEcalPos = (*thePFTauRef).leadPFChargedHadrCand()->positionAtECALEntrance();
+
       if(myleadTk.isNonnull()){ 
-	if(MagneticField!=0){ 
-	  myleadTkEcalPos = TauTagTools::propagTrackECALSurfContactPoint(MagneticField,myleadTk);
-	} else {
-	  // temporary: outer position is not correct!
-	myleadTkEcalPos = myleadTk->outerPosition();
-	}
 	if (applyCut_ecalCrack_ && isInEcalCrack(abs((double)myleadTkEcalPos.eta()))) {
 	  thePFTauDiscriminatorAgainstElectron->setValue(iPFTau,0);
 	  continue;
 	}
       }
     }
-
+    
     bool decision = false;
     bool emfPass = true, htotPass = true, hmaxPass = true; 
-    bool h3x3Pass = true, estripPass = true, erecovPass = true, epreidPass = true;
+    bool h3x3Pass = true, estripPass = true, erecovPass = true;
+    bool epreidPass = true, epreid2DPass = true;
 
     if (applyCut_emFraction_) {
       if ((*thePFTauRef).emFraction() > emFraction_maxValue_) {
@@ -58,9 +49,9 @@ void PFRecoTauDiscriminationAgainstElectron::produce(Event& iEvent,const EventSe
 	h3x3Pass = false;
       }
     }
-    if (applyCut_ecalStripSumEOverPLead_) {
-      if ((*thePFTauRef).ecalStripSumEOverPLead() > ecalStripSumEOverPLead_minValue_ &&
-	  (*thePFTauRef).ecalStripSumEOverPLead() < ecalStripSumEOverPLead_maxValue_) {
+    if (applyCut_EOverPLead_) {
+      if ((*thePFTauRef).ecalStripSumEOverPLead() > EOverPLead_minValue_ &&
+	  (*thePFTauRef).ecalStripSumEOverPLead() < EOverPLead_maxValue_) {
 	estripPass = false;
       } else {
 	estripPass = true;
@@ -75,23 +66,31 @@ void PFRecoTauDiscriminationAgainstElectron::produce(Event& iEvent,const EventSe
       } 
     }
     if (applyCut_electronPreID_) {
+      if ((*thePFTauRef).electronPreIDDecision()) {
+	epreidPass = false;
+      }  else {
+	epreidPass = true;
+      }
+    }
+      
+    if (applyCut_electronPreID_2D_) {
       if (
 	  ((*thePFTauRef).electronPreIDDecision() &&
-	   ((*thePFTauRef).ecalStripSumEOverPLead() < elecPreID1_SumEOverPLead_maxValue ||
-	    (*thePFTauRef).hcal3x3OverPLead() > elecPreID1_Hcal3x3_minValue))
+	   ((*thePFTauRef).ecalStripSumEOverPLead() < elecPreID1_EOverPLead_maxValue ||
+	    (*thePFTauRef).hcalTotOverPLead() > elecPreID1_HOverPLead_minValue))
 	  ||
 	  (!(*thePFTauRef).electronPreIDDecision() &&
-	   ((*thePFTauRef).ecalStripSumEOverPLead() < elecPreID0_SumEOverPLead_maxValue ||
-	    (*thePFTauRef).hcal3x3OverPLead() > elecPreID0_Hcal3x3_minValue))
+	   ((*thePFTauRef).ecalStripSumEOverPLead() < elecPreID0_EOverPLead_maxValue ||
+	    (*thePFTauRef).hcalTotOverPLead() > elecPreID0_HOverPLead_minValue))
 	  ){
-	epreidPass = true;
+	epreid2DPass = true;
       }  else {
-	epreidPass = false;
+	epreid2DPass = false;
       }
     }
 
     decision = emfPass && htotPass && hmaxPass && 
-      h3x3Pass && estripPass && erecovPass && epreidPass;
+      h3x3Pass && estripPass && erecovPass && epreidPass && epreid2DPass;
     if (decision) {
       thePFTauDiscriminatorAgainstElectron->setValue(iPFTau,1);
     } else {
