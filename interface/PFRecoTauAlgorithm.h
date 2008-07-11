@@ -26,6 +26,7 @@ class  PFRecoTauAlgorithm  {
   PFRecoTauAlgorithm(const ParameterSet&);
   ~PFRecoTauAlgorithm(){}
   void setTransientTrackBuilder(const TransientTrackBuilder*);
+  bool checkPos(std::vector<math::XYZPoint> CalPos,math::XYZPoint CandPos) const;
   
   // PFRecTrackCollection: Temporary until integrated to PFCandidate
   PFTau buildPFTau(const PFTauTagInfoRef&,const Vertex&); 
@@ -81,6 +82,7 @@ class  PFRecoTauAlgorithm  {
   double EcalStripSumE_deltaPhiOverQ_minValue_;
   double EcalStripSumE_deltaPhiOverQ_maxValue_;
   
+
 };
 #endif 
 
