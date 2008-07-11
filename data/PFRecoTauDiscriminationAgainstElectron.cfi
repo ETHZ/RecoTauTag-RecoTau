@@ -24,6 +24,6 @@ module pfRecoTauDiscriminationAgainstElectron=PFRecoTauDiscriminationAgainstElec
     double ElecPreID1_EOverPLead_maxValue  = 0.8
     double ElecPreID1_HOverPLead_minValue  = 0.15
 
-    bool ApplyCut_EcalCrackCue = true
+    bool ApplyCut_EcalCrackCut = true
 
 }
