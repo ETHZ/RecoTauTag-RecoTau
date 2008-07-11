@@ -16,13 +16,13 @@ module pfRecoTauDiscriminationAgainstElectron=PFRecoTauDiscriminationAgainstElec
     double BremsRecoveryEOverPLead_minValue  = 0.8 // Lower cut away window threshold
     double BremsRecoveryEOverPLead_maxValue  = 1.8 // Upper cut away window threshold
 
-    bool ApplyCut_ElectronPreID      = true // Electron PreID cut only
+    bool ApplyCut_ElectronPreID      = false // Electron PreID cut only
 
-    bool ApplyCut_ElectronPreID_2D   = false
-    double ElecPreID0_EOverPLead_maxValue  = 1.
+    bool ApplyCut_ElectronPreID_2D   = true
+    double ElecPreID0_EOverPLead_maxValue  = 0.95
     double ElecPreID0_HOverPLead_minValue  = 0.05
-    double ElecPreID1_EOverPLead_maxValue  = 1.
-    double ElecPreID1_HOverPLead_minValue  = 0.05
+    double ElecPreID1_EOverPLead_maxValue  = 0.8
+    double ElecPreID1_HOverPLead_minValue  = 0.15
 
     bool ApplyCut_EcalCrackCut = true
 
