@@ -26,14 +26,13 @@ pfRecoTauDiscriminationAgainstElectron = cms.EDFilter("PFRecoTauDiscriminationAg
 
     ApplyCut_ElectronPreID = cms.bool(False),
 
-    ApplyCut_EcalCrackCut = cms.bool(True),
-
     ApplyCut_ElectronPreID_2D = cms.bool(True),
     ElecPreID0_EOverPLead_maxValue = cms.double(0.95),
     ElecPreID0_HOverPLead_minValue = cms.double(0.05),
     ElecPreID1_EOverPLead_maxValue = cms.double(0.8),
-    ElecPreID1_HOverPLead_minValue = cms.double(0.15)
+    ElecPreID1_HOverPLead_minValue = cms.double(0.15),
 
+    ApplyCut_EcalCrackCut = cms.bool(False)
 )
 
 
