@@ -12,9 +12,13 @@
 
 #include "RecoTauTag/TauTagTools/interface/PFTauElementsOperators.h"
 #include "RecoTauTag/TauTagTools/interface/CaloTauElementsOperators.h"
+#include "RecoTauTag/TauTagTools/interface/TauTagTools.h"
 
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+
 
 using namespace std;
 using namespace reco;
@@ -26,7 +30,10 @@ class  PFRecoTauAlgorithm  {
   PFRecoTauAlgorithm(const ParameterSet&);
   ~PFRecoTauAlgorithm(){}
   void setTransientTrackBuilder(const TransientTrackBuilder*);
-  PFTau buildPFTau(const PFTauTagInfoRef&,const Vertex&); 
+  void setMagneticField(const MagneticField*); 
+  bool checkPos(std::vector<math::XYZPoint>,math::XYZPoint) const;
+
+  PFTau buildPFTau(const PFTauTagInfoRef&,const Vertex&,const PFRecTrackCollection&); 
  private:
   const TransientTrackBuilder* TransientTrackBuilder_;
   double LeadChargedHadrCand_minPt_;
@@ -68,6 +75,14 @@ class  PFRecoTauAlgorithm  {
   double HCALIsolConeSize_min_;
   double HCALIsolConeSize_max_;
   double AreaMetric_recoElements_maxabsEta_;
+
+  const MagneticField* MagneticField_;
+  double ElecPreIDLeadTkMatch_maxDR_;
+  double EcalStripSumE_minClusEnergy_;
+  double EcalStripSumE_deltaEta_;
+  double EcalStripSumE_deltaPhiOverQ_minValue_;
+  double EcalStripSumE_deltaPhiOverQ_maxValue_;
+
 };
 #endif 
 

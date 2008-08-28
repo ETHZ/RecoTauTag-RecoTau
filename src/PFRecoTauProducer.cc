@@ -2,6 +2,7 @@
 
 PFRecoTauProducer::PFRecoTauProducer(const ParameterSet& iConfig){
   PFTauTagInfoProducer_  = iConfig.getParameter<InputTag>("PFTauTagInfoProducer");
+  ElectronPreIDProducer_  = iConfig.getParameter<InputTag>("ElectronPreIDProducer");
   PVProducer_            = iConfig.getParameter<string>("PVProducer");
   smearedPVsigmaX_       = iConfig.getParameter<double>("smearedPVsigmaX");
   smearedPVsigmaY_       = iConfig.getParameter<double>("smearedPVsigmaY");
@@ -20,7 +21,16 @@ void PFRecoTauProducer::produce(Event& iEvent,const EventSetup& iSetup){
   ESHandle<TransientTrackBuilder> myTransientTrackBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",myTransientTrackBuilder);
   PFRecoTauAlgo_->setTransientTrackBuilder(myTransientTrackBuilder.product());
-  
+
+  ESHandle<MagneticField> myMF;
+  iSetup.get<IdealMagneticFieldRecord>().get(myMF);
+  PFRecoTauAlgo_->setMagneticField(myMF.product());
+
+  // Electron PreID tracks: Temporary until integrated to PFCandidate
+  edm::Handle<PFRecTrackCollection> myPFelecTk; 
+  iEvent.getByLabel(ElectronPreIDProducer_,myPFelecTk); 
+  const PFRecTrackCollection theElecTkCollection=*(myPFelecTk.product()); 
+
   // query a rec/sim PV
   Handle<VertexCollection> thePVs;
   iEvent.getByLabel(PVProducer_,thePVs);
@@ -43,7 +53,7 @@ void PFRecoTauProducer::produce(Event& iEvent,const EventSetup& iSetup){
   int iinfo=0;
   for(PFTauTagInfoCollection::const_iterator i_info=thePFTauTagInfoCollection->begin();i_info!=thePFTauTagInfoCollection->end();i_info++) { 
     if((*i_info).pfjetRef()->pt()>JetMinPt_){
-      PFTau myPFTau=PFRecoTauAlgo_->buildPFTau(Ref<PFTauTagInfoCollection>(thePFTauTagInfoCollection,iinfo),thePV);
+      PFTau myPFTau=PFRecoTauAlgo_->buildPFTau(Ref<PFTauTagInfoCollection>(thePFTauTagInfoCollection,iinfo),thePV,theElecTkCollection);
       resultPFTau->push_back(myPFTau);
     }
     ++iinfo;
