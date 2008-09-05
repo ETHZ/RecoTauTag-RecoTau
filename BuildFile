@@ -3,6 +3,8 @@
 <use name=DataFormats/Math>
 <use name=DataFormats/TauReco>
 <use name=DataFormats/VertexReco>
+<use name=DataFormats/MuonReco>
+<use name=RecoMuon/MuonIdentification>
 <use name=FWCore/Framework>
 <use name=FWCore/MessageLogger>
 <use name=FWCore/ParameterSet>
@@ -22,6 +24,7 @@
   <use name=SimDataFormats/Vertex>
   <use name=DataFormats/TauReco>
   <use name=DataFormats/VertexReco>
+  <use name=DataFormats/MuonReco>
   <use name=FWCore/Framework>
   <use name=FWCore/MessageLogger>
   <use name=FWCore/ParameterSet>
