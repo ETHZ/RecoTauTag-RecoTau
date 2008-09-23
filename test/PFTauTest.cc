@@ -12,7 +12,7 @@
 #include "RecoTauTag/TauTagTools/interface/PFTauElementsOperators.h"
 #include "RecoTauTag/TauTagTools/interface/TauTagTools.h"
 
-#include "Math/GenVector/VectorUtil.h"
+//#include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PxPyPzE4D.h"
 
 #include <memory>
@@ -31,12 +31,18 @@
 #include "PhysicsTools/UtilAlgos/interface/TFileService.h" // Framework service for histograms
 
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
-#include <Math/GenVector/VectorUtil.h>
-#include "TLorentzVector.h"
+//#include <Math/GenVector/VectorUtil.h>
+
+// get rid of this damn TLorentzVector!
+#include "DataFormats/Candidate/interface/Particle.h"
+#include "PhysicsTools/Utilities/interface/deltaR.h"
+//#include "TLorentzVector.h"
 
 using namespace edm;
 using namespace reco; 
 using namespace std;
+
+typedef Particle::LorentzVector LorentzVector;
 
 class PFTauTest : public EDAnalyzer {
 public:
@@ -46,6 +52,9 @@ public:
   virtual void beginJob();
   virtual void endJob();
 private:
+
+  DeltaR<LorentzVector> deltaRComputer_;
+
   string PFTauProducer_;
   string PFTauDiscriminatorByIsolationProducer_;
   string PFTauDiscriminatorAgainstElectronProducer_;
@@ -67,11 +76,11 @@ private:
   TDirectory *_dir;
 
   // Gen Objects
-  std::vector<TLorentzVector> _GenElecs;
-  std::vector<TLorentzVector> _GenMuons;
-  std::vector<TLorentzVector> _GenTauElecs;
-  std::vector<TLorentzVector> _GenTauMuons;
-  std::vector<TLorentzVector> _GenTauHads;
+  std::vector<LorentzVector> _GenElecs;
+  std::vector<LorentzVector> _GenMuons;
+  std::vector<LorentzVector> _GenTauElecs;
+  std::vector<LorentzVector> _GenTauMuons;
+  std::vector<LorentzVector> _GenTauHads;
 
   // Efficiency plots
   TH1F* h_TauEff_ElecPreID;
@@ -201,13 +210,13 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
   _GenElecs.clear();;
   
   int ntaujet=0,nelec=0,nmuon=0;  
-  TLorentzVector taunet,tauelec,taumuon;
+  LorentzVector taunet,tauelec,taumuon;
   HepMC::GenEvent::particle_iterator p;
   for (p = generated_event->particles_begin(); p != generated_event->particles_end(); p++) {
     if(abs((*p)->pdg_id()) == 15&&(*p)->status()==2) { 
       bool lept_decay = false;
       
-      TLorentzVector tau((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
+      LorentzVector tau((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
       HepMC::GenVertex::particle_iterator z = (*p)->end_vertex()->particles_begin(HepMC::descendants);
       for(; z != (*p)->end_vertex()->particles_end(HepMC::descendants); z++) {
 	if(abs((*z)->pdg_id()) == 11 || abs((*z)->pdg_id()) == 13) lept_decay=true;
@@ -226,14 +235,14 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       }
       if(lept_decay==false) {
 	ntaujet++;
-	TLorentzVector jetMom=tau-taunet;
+	LorentzVector jetMom=tau-taunet;
 	_GenTauHads.push_back(jetMom);
       }
     } else if(abs((*p)->pdg_id()) == 11&&(*p)->status()==1) { 
-      TLorentzVector elec((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
+      LorentzVector elec((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
       _GenElecs.push_back(elec);
     } else if(abs((*p)->pdg_id()) == 13&&(*p)->status()==1) { 
-      TLorentzVector mu((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
+      LorentzVector mu((*p)->momentum().px(),(*p)->momentum().py(),(*p)->momentum().pz(),(*p)->momentum().e());
       _GenMuons.push_back(mu);
     }
 
@@ -270,7 +279,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
       if(PFJetCands[iPFJetCand]!=NULL){
 	cout<<"****************************"<<endl;
 	cout<<"mva: "<<PFJetCands[iPFJetCand]->mva_e_pi()<<endl;
-	cout<<PFJetCands[iPFJetCand]->et()<<" "<<PFJetCands[iPFJetCand]->eta()<<" "<<PFJetCands[iPFJetCand]->phi()<<endl;
+	cout<<PFJetCands[iPFJetCand]->Et()<<" "<<PFJetCands[iPFJetCand]->eta()<<" "<<PFJetCands[iPFJetCand]->phi()<<endl;
       } else {
 	cout<<++n<<" ============================="<<endl;
       }
@@ -293,11 +302,11 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     if(myleadPFCand.isNonnull()){
       cout<<"****************************"<<endl;
       cout<<myleadPFCand->mva_e_pi()<<endl;
-      cout<<myleadPFCand->et()<<" "<<myleadPFCand->eta()<<" "<<myleadPFCand->phi()<<endl;
+      cout<<myleadPFCand->Et()<<" "<<myleadPFCand->eta()<<" "<<myleadPFCand->phi()<<endl;
       //}
       cout<<(*thePFTau).electronPreIDDecision()<<endl;
       cout<<(*thePFTau).emFraction()<<" "<<(*thePFTau).hcal3x3OverPLead()<<endl;
-      cout<<(*thePFTau).et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
+      cout<<(*thePFTau).Et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
       cout<<"DiscriminatonByIsolation: "<<(*thePFTauDiscriminatorByIsolation)[thePFTau]<<endl;
     } else {
       cout<<++n<<" ============================="<<endl;
@@ -305,7 +314,7 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     */
     
     /*
-    if ((*thePFTau).et() > 15. && abs((*thePFTau).eta()) < 2.5) {
+    if ((*thePFTau).Et() > 15. && abs((*thePFTau).eta()) < 2.5) {
       if ((*thePFTau).electronPreIDDecision()) {
 	cout<<"****************************"<<endl;
 	cout<<(*thePFTau).et()<<" "<<(*thePFTau).eta()<<" "<<(*thePFTau).phi()<<endl;
@@ -322,9 +331,9 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     if ((*thePFTauDiscriminatorByIsolation)[thePFTau] == 1) {
       if ((*thePFTau).et() > 15. && abs((*thePFTau).eta()) < 2.5) {
 	for (unsigned int i = 0; i<_GenTauHads.size();i++) {
-	  if (_GenTauHads[i].Et() >= 10. && abs(_GenTauHads[i].Eta()) <= 2.5 ) {
-	    TLorentzVector pftau((*thePFTau).px(),(*thePFTau).py(),(*thePFTau).pz(),(*thePFTau).energy());
-	    double deltaR = ROOT::Math::VectorUtil::DeltaR(_GenTauHads[i],pftau);
+	  if (_GenTauHads[i].Et() >= 10. && abs(_GenTauHads[i].eta()) <= 2.5 ) {
+	    LorentzVector pftau((*thePFTau).px(),(*thePFTau).py(),(*thePFTau).pz(),(*thePFTau).energy());
+	    double deltaR = deltaRComputer_(_GenTauHads[i],pftau);
 	    if (deltaR<0.25) {
 	      nTauMatchPFTau++;
 	      
@@ -391,9 +400,9 @@ void PFTauTest::analyze(const Event& iEvent, const EventSetup& iSetup){
     if ((*thePFTauDiscriminatorByIsolation)[thePFTau] == 1) {
       if ((*thePFTau).et() > 15. && abs((*thePFTau).eta()) < 2.5) {
 	for (unsigned int i = 0; i<_GenElecs.size();i++) {
-	  if (_GenElecs[i].Et() >= 10. && abs(_GenElecs[i].Eta()) <= 2.5 ) {
-	    TLorentzVector pftau((*thePFTau).px(),(*thePFTau).py(),(*thePFTau).pz(),(*thePFTau).energy());
-	    double deltaR = ROOT::Math::VectorUtil::DeltaR(_GenElecs[i],pftau);
+	  if (_GenElecs[i].Et() >= 10. && abs(_GenElecs[i].eta()) <= 2.5 ) {
+	    LorentzVector pftau((*thePFTau).px(),(*thePFTau).py(),(*thePFTau).pz(),(*thePFTau).energy());
+	    double deltaR = deltaRComputer_(_GenElecs[i],pftau);
 	    if (deltaR<0.25) {
 	      nElecMatchPFTau++;
 	      
