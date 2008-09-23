@@ -1,0 +1,30 @@
+module pfTauDecayMode = PFRecoTauDecayModeDeterminator {
+   InputTag PFTauProducer             = pfRecoTauProducerInsideOut
+   uint32 maxPhotonsToMerge           = 3
+   double maxPiZeroMass               = 0.2
+   bool mergeLowPtPhotonsFirst        = true
+   bool refitTracks                   = false
+   bool filterTwoProngs               = false
+   bool filterPhotons                 = false
+   double minPtFractionForSecondProng = -1.
+   double minPtFractionForThirdGamma  = -1.
+   //only used for vertex fitter
+   double maxDistance                 = 0.01
+   int32 maxNbrOfIterations            = 10
+}
+  
+module pfTauDecayModeHE = PFRecoTauDecayModeDeterminator {
+   InputTag PFTauProducer             = pfRecoTauProducerHighEfficiency
+   uint32 maxPhotonsToMerge           = 3
+   double maxPiZeroMass               = 0.2
+   bool mergeLowPtPhotonsFirst        = true
+   bool refitTracks                   = false
+   bool filterTwoProngs               = false
+   bool filterPhotons                 = false
+   double minPtFractionForSecondProng = -1.
+   double minPtFractionForThirdGamma  = -1.
+   //only used for vertex fitter
+   double maxDistance                 = 0.01
+   int32 maxNbrOfIterations            = 10
+   
+}
