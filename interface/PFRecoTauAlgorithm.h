@@ -76,13 +76,14 @@ class  PFRecoTauAlgorithm  {
   uint32_t ChargedHadrCand_IsolAnnulus_minNhits_;
   uint32_t Track_IsolAnnulus_minNhits_;
 
+
   double ElecPreIDLeadTkMatch_maxDR_;
   double EcalStripSumE_minClusEnergy_;
   double EcalStripSumE_deltaEta_;
   double EcalStripSumE_deltaPhiOverQ_minValue_;
   double EcalStripSumE_deltaPhiOverQ_maxValue_;
-  
-
+  string DataType_;
+  bool checkPos(std::vector<math::XYZPoint> CalPos,math::XYZPoint CandPos);
 };
 #endif 
 
