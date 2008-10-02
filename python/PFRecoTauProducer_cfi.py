@@ -35,7 +35,7 @@ pfRecoTauProducer = cms.EDProducer("PFRecoTauProducer",
 
     AreaMetric_recoElements_maxabsEta = cms.double(2.5),
     HCALIsolConeSize_max = cms.double(0.6),
-    Track_IsolAnnulus_minNhits = cms.uint32(8),
+    Track_IsolAnnulus_minNhits = cms.uint32(3),
     HCALSignalConeMetric = cms.string('DR'), ## *  
 
     # * possible metrics : "DR", "angle", "area";
