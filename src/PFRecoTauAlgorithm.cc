@@ -53,6 +53,22 @@ PFRecoTauAlgorithm::PFRecoTauAlgorithm(const ParameterSet& iConfig) : TransientT
   EcalStripSumE_deltaPhiOverQ_maxValue_ = iConfig.getParameter<double>("EcalStripSumE_deltaPhiOverQ_maxValue");
 
 
+
+  //TFormula computation
+  PFTau tmp;
+  PFTauElementsOperators myTmp(tmp);
+   myMatchingConeSizeTFormula=myTmp.computeConeSizeTFormula(MatchingConeSizeFormula_,"Matching cone size");
+  //Charged particels cones
+  myTrackerSignalConeSizeTFormula=myTmp.computeConeSizeTFormula(TrackerSignalConeSizeFormula_,"Tracker signal cone size");
+  myTrackerIsolConeSizeTFormula=myTmp.computeConeSizeTFormula(TrackerIsolConeSizeFormula_,"Tracker isolation cone size");
+  //Gamma candidates cones
+  myECALSignalConeSizeTFormula=myTmp.computeConeSizeTFormula(ECALSignalConeSizeFormula_,"ECAL signal cone size");
+  myECALIsolConeSizeTFormula=myTmp.computeConeSizeTFormula(ECALIsolConeSizeFormula_,"ECAL isolation cone size");
+  //Neutral hadrons cones
+  myHCALSignalConeSizeTFormula=myTmp.computeConeSizeTFormula(HCALSignalConeSizeFormula_,"HCAL signal cone size");
+  myHCALIsolConeSizeTFormula=myTmp.computeConeSizeTFormula(HCALIsolConeSizeFormula_,"HCAL isolation cone size");
+ 
+
 }
 void PFRecoTauAlgorithm::setTransientTrackBuilder(const TransientTrackBuilder* x){TransientTrackBuilder_=x;}
 
@@ -68,7 +84,6 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
   PFCandidateRefVector myPFGammaCands=(*myPFTauTagInfoRef).PFGammaCands();
   
   PFTauElementsOperators myPFTauElementsOperators(myPFTau);
-  TFormula myMatchingConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(MatchingConeSizeFormula_,"Matching cone size");
   double myMatchingConeSize=myPFTauElementsOperators.computeConeSize(myMatchingConeSizeTFormula,MatchingConeSize_min_,MatchingConeSize_max_);
   PFCandidateRef myleadPFCand=myPFTauElementsOperators.leadPFChargedHadrCand(MatchingConeMetric_,myMatchingConeSize,LeadChargedHadrCand_minPt_);
   bool myleadPFCand_rectkavailable=false;
@@ -99,17 +114,11 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
       myPFChargedHadrCands=myPFChargedHadrCandsbis;
     }
     
-    TFormula myTrackerSignalConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(TrackerSignalConeSizeFormula_,"Tracker signal cone size");
     double myTrackerSignalConeSize=myPFTauElementsOperators.computeConeSize(myTrackerSignalConeSizeTFormula,TrackerSignalConeSize_min_,TrackerSignalConeSize_max_);
-    TFormula myTrackerIsolConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(TrackerIsolConeSizeFormula_,"Tracker isolation cone size");
     double myTrackerIsolConeSize=myPFTauElementsOperators.computeConeSize(myTrackerIsolConeSizeTFormula,TrackerIsolConeSize_min_,TrackerIsolConeSize_max_);     	
-    TFormula myECALSignalConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(ECALSignalConeSizeFormula_,"ECAL signal cone size");
     double myECALSignalConeSize=myPFTauElementsOperators.computeConeSize(myECALSignalConeSizeTFormula,ECALSignalConeSize_min_,ECALSignalConeSize_max_);
-    TFormula myECALIsolConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(ECALIsolConeSizeFormula_,"ECAL isolation cone size");
     double myECALIsolConeSize=myPFTauElementsOperators.computeConeSize(myECALIsolConeSizeTFormula,ECALIsolConeSize_min_,ECALIsolConeSize_max_);     	
-    TFormula myHCALSignalConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(HCALSignalConeSizeFormula_,"HCAL signal cone size");
     double myHCALSignalConeSize=myPFTauElementsOperators.computeConeSize(myHCALSignalConeSizeTFormula,HCALSignalConeSize_min_,HCALSignalConeSize_max_);
-    TFormula myHCALIsolConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(HCALIsolConeSizeFormula_,"HCAL isolation cone size");
     double myHCALIsolConeSize=myPFTauElementsOperators.computeConeSize(myHCALIsolConeSizeTFormula,HCALIsolConeSize_min_,HCALIsolConeSize_max_);     	
     
     PFCandidateRefVector mySignalPFChargedHadrCands,mySignalPFNeutrHadrCands,mySignalPFGammaCands,mySignalPFCands;
@@ -177,9 +186,7 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
   myPFTau.setleadTrack(myleadTk);
   if(myleadTk.isNonnull()){
     double myleadTkDZ=(*myleadTk).dz();
-    TFormula myTrackerSignalConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(TrackerSignalConeSizeFormula_,"Tracker signal cone size");
     double myTrackerSignalConeSize=myPFTauElementsOperators.computeConeSize(myTrackerSignalConeSizeTFormula,TrackerSignalConeSize_min_,TrackerSignalConeSize_max_);
-    TFormula myTrackerIsolConeSizeTFormula=myPFTauElementsOperators.computeConeSizeTFormula(TrackerIsolConeSizeFormula_,"Tracker isolation cone size");
     double myTrackerIsolConeSize=myPFTauElementsOperators.computeConeSize(myTrackerIsolConeSizeTFormula,TrackerIsolConeSize_min_,TrackerIsolConeSize_max_);     
     if (UseTrackLeadTrackDZconstraint_){
       myPFTau.setsignalTracks(myPFTauElementsOperators.tracksInCone((*myleadTk).momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,Track_minPt_,TrackLeadTrack_maxDZ_,myleadTkDZ));
