@@ -1,7 +1,6 @@
 #include "RecoTauTag/RecoTau/interface/PFRecoTauTagInfoProducer.h"
 
 PFRecoTauTagInfoProducer::PFRecoTauTagInfoProducer(const ParameterSet& iConfig){
-
   PFCandidateProducer_                = iConfig.getParameter<string>("PFCandidateProducer");
   PFJetTracksAssociatorProducer_      = iConfig.getParameter<string>("PFJetTracksAssociatorProducer");
   PVProducer_                         = iConfig.getParameter<string>("PVProducer");
