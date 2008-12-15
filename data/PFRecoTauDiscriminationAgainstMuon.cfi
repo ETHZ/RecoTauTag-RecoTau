@@ -1,8 +1,0 @@
-module pfRecoTauDiscriminationAgainstMuon=PFRecoTauDiscriminationAgainstMuon {
-    string PFTauProducer                            = "pfRecoTauProducer" 
-
-    string discriminatorOption = "noSegMatch" // available options are; noSegMatch, twoDCut, merePresence, combined
-    double a = 0.5  // user defined 2D Cut. Reject tau if calo * a + seg * b + c < 0 
-    double b = 0.5 
-    double c = 0.0 
-}
