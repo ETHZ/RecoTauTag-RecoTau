@@ -29,8 +29,7 @@
   <use name=DataFormats/TauReco>
   <use name=DataFormats/VertexReco>
   <use name=FWCore/Framework>
-  <use name=FWCore/MessageLogger>
-  <use name=FWCore/ParameterSet>
+  <use name=FWCore/MessageLogger> <use name=FWCore/ParameterSet>
   <use name=RecoTauTag/TauTagTools>
   <use name=PhysicsTools/RecoUtils>
   <use name=RecoVertex/KalmanVertexFit>
