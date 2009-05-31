@@ -3,8 +3,9 @@
 
 /* class PFRecoTauDiscriminationByIsolation
  * created : Jul 23 2007,
- * revised : Sep 5 2007,
- * contributors : Ludovic Houchu (Ludovic.Houchu@cern.ch ; IPHC, Strasbourg), Christian Veelken (veelken@fnal.gov ; UC Davis)
+ * revised : Jan 27 2009,
+ * contributors : Ludovic Houchu (Ludovic.Houchu@cern.ch ; IPHC, Strasbourg), Christian Veelken (veelken@fnal.gov ; UC Davis), 
+ *                Evan K. Friis (friis@physics.ucdavis.edu ; UC Davis)
  */
 
 #include "FWCore/Framework/interface/EDProducer.h"
@@ -25,17 +26,19 @@ using namespace reco;
 class PFRecoTauDiscriminationByIsolation : public EDProducer {
  public:
   explicit PFRecoTauDiscriminationByIsolation(const ParameterSet& iConfig){   
-    PFTauProducer_                      = iConfig.getParameter<InputTag>("PFTauProducer");
-    ApplyDiscriminationByTrackerIsolation_ = iConfig.getParameter<bool>("ApplyDiscriminationByTrackerIsolation");
+    PFTauProducer_                              = iConfig.getParameter<InputTag>("PFTauProducer");
+    ApplyDiscriminationByTrackerIsolation_      = iConfig.getParameter<bool>("ApplyDiscriminationByTrackerIsolation");
+    maxChargedPt_                               = iConfig.getParameter<double>("maxChargedPt");
     ManipulateTracks_insteadofChargedHadrCands_ = iConfig.getParameter<bool>("ManipulateTracks_insteadofChargedHadrCands");
-    TrackerIsolAnnulus_Candsmaxn_       = iConfig.getParameter<int>("TrackerIsolAnnulus_Candsmaxn");       
-    ApplyDiscriminationByECALIsolation_ = iConfig.getParameter<bool>("ApplyDiscriminationByECALIsolation");
-    ECALIsolAnnulus_Candsmaxn_          = iConfig.getParameter<int>("ECALIsolAnnulus_Candsmaxn");
+    TrackerIsolAnnulus_Candsmaxn_               = iConfig.getParameter<int>("TrackerIsolAnnulus_Candsmaxn");
+    maxGammaPt_                                 = iConfig.getParameter<double>("maxGammaPt");
+    ApplyDiscriminationByECALIsolation_         = iConfig.getParameter<bool>("ApplyDiscriminationByECALIsolation");
+    ECALIsolAnnulus_Candsmaxn_                  = iConfig.getParameter<int>("ECALIsolAnnulus_Candsmaxn");
     //     following parameters are considered when ManipulateTracks_insteadofChargedHadrCands_ parameter is set true
-    //     *BEGIN*
-    TrackerIsolAnnulus_Tracksmaxn_      = iConfig.getParameter<int>("TrackerIsolAnnulus_Tracksmaxn");   
-    //     *END*    
-    
+    TrackerIsolAnnulus_Tracksmaxn_              = iConfig.getParameter<int>("TrackerIsolAnnulus_Tracksmaxn");   
+    // Isolation normalized to the tau pt
+    TrackIsolationOverTauPt_                    = iConfig.getParameter<bool>("TrackIsolationOverTauPt");
+    SumOverCandidates_                          = iConfig.getParameter<bool>("SumOverCandidates");
     produces<PFTauDiscriminator>();
   }
   ~PFRecoTauDiscriminationByIsolation(){
@@ -45,11 +48,15 @@ class PFRecoTauDiscriminationByIsolation : public EDProducer {
  private:  
   InputTag PFTauProducer_;
   bool ApplyDiscriminationByTrackerIsolation_;
+  double maxChargedPt_;
   bool ManipulateTracks_insteadofChargedHadrCands_;
-  int TrackerIsolAnnulus_Candsmaxn_;   
+  unsigned int TrackerIsolAnnulus_Candsmaxn_;   
   bool ApplyDiscriminationByECALIsolation_; 
-  int ECALIsolAnnulus_Candsmaxn_; 
-  int TrackerIsolAnnulus_Tracksmaxn_;   
+  double maxGammaPt_;
+  unsigned int ECALIsolAnnulus_Candsmaxn_; 
+  unsigned int TrackerIsolAnnulus_Tracksmaxn_;   
+  bool TrackIsolationOverTauPt_;
+  bool SumOverCandidates_;
 };
 #endif
 
