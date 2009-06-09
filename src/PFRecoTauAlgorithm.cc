@@ -186,7 +186,6 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     }
     
     //Setting the myPFTau four momentum as the one made from the signal cone constituents.
- 
     double energy = tmpLorentzVect.energy();
     double transverseEnergy = tmpLorentzVect.pt();
     myPFTau.setP4(tmpLorentzVect);
@@ -245,6 +244,18 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     myPFTau.setisolationPFNeutrHadrCands(myIsolPFNeutrHadrCands);
     myIsolPFGammaCands=myPFTauElementsOperators.PFGammaCandsInAnnulus(myPFTau.momentum(),ECALSignalConeMetric_,myECALSignalConeSize,ECALIsolConeMetric_,myECALIsolConeSize,PFTauAlgo_GammaCand_minPt_);  
     myPFTau.setisolationPFGammaCands(myIsolPFGammaCands);
+
+    // store information PFJet type information inside the tau
+    JetReco::InputCollection signalConeObjects;
+    for(size_t i = 0; i < mySignalPFCands.size(); ++i)
+    {
+       PFCandidateRef myRef = mySignalPFCands[i];
+       JetReco::InputItem myInput(myRef.get(), i);
+       signalConeObjects.push_back(myInput);
+    }
+    PFJet::Specific signalConeInfo;
+    JetMaker::makeSpecific(signalConeObjects, &signalConeInfo);
+    myPFTau.setSpecific(signalConeInfo);
 
     //Fill isolation collections, and calculate pt sum in isolation cone
     float myIsolPFChargedHadrCands_Ptsum = 0.;
