@@ -1,0 +1,55 @@
+/* class CaloRecoTauDiscriminationByLeadingTrackFinding
+ * created : October 08 2008,
+ * revised : ,
+ * Authors : Simone Gennai (SNS), Evan Friis (UC Davis)
+ */
+
+#include "RecoTauTag/RecoTau/interface/TauDiscriminationProducerBase.h"
+
+class CaloRecoTauDiscriminationByLeadingTrackFinding : public CaloTauDiscriminationProducerBase {
+   public:
+      explicit CaloRecoTauDiscriminationByLeadingTrackFinding(const ParameterSet& iConfig):CaloTauDiscriminationProducerBase(iConfig){}
+      ~CaloRecoTauDiscriminationByLeadingTrackFinding(){} 
+      double discriminate(const CaloTauRef& theCaloTauRef);
+};
+
+double CaloRecoTauDiscriminationByLeadingTrackFinding::discriminate(const CaloTauRef& theCaloTauRef)
+{
+   const CaloTau& theCaloTau=*theCaloTauRef;
+   // fill the AssociationVector object
+   if (theCaloTau.leadTrack().isNonnull()) 
+      return 1.;
+   else 
+      return 0.;
+}
+
+DEFINE_FWK_MODULE(CaloRecoTauDiscriminationByLeadingTrackFinding);
+/*
+void CaloRecoTauDiscriminationByLeadingTrackFinding::produce(Event& iEvent,const EventSetup& iEventSetup){
+
+   Handle<CaloTauCollection> theCaloTauCollection;
+   iEvent.getByLabel(CaloTauProducer_,theCaloTauCollection);
+
+   auto_ptr<CaloTauDiscriminator> theCaloTauDiscriminatorByLeadingTrackFinding(new CaloTauDiscriminator(CaloTauRefProd(theCaloTauCollection)));
+   double theleadTrackFindingDiscriminator = 0.;
+
+   //loop over the CaloTau candidates
+   for(size_t iCaloTau=0;iCaloTau<theCaloTauCollection->size();++iCaloTau) {
+      CaloTauRef theCaloTauRef(theCaloTauCollection,iCaloTau);
+      CaloTau theCaloTau=*theCaloTauRef;
+
+      // fill the AssociationVector object
+      if (theCaloTau.leadTrack().isNonnull()) 
+         theleadTrackFindingDiscriminator = 1.;
+      else 
+         theleadTrackFindingDiscriminator = 0.;
+
+
+      theCaloTauDiscriminatorByLeadingTrackFinding->setValue(iCaloTau,theleadTrackFindingDiscriminator);
+   }
+
+   iEvent.put(theCaloTauDiscriminatorByLeadingTrackFinding);
+
+}
+*/
+   

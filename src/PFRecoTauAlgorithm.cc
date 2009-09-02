@@ -87,7 +87,11 @@ PFRecoTauAlgorithm::PFRecoTauAlgorithm(const ParameterSet& iConfig) : TransientT
  
 
 }
-void PFRecoTauAlgorithm::setTransientTrackBuilder(const TransientTrackBuilder* x){TransientTrackBuilder_=x;}
+
+void PFRecoTauAlgorithm::setTransientTrackBuilder(const TransientTrackBuilder* x)
+{
+   TransientTrackBuilder_ = x;
+}
 
 PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,const Vertex& myPV){
   PFJetRef myPFJet=(*myPFTauTagInfoRef).pfjetRef();  // catch a ref to the initial PFJet  
@@ -114,10 +118,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
   double myPFTau_refInnerPosition_y = myPV.y();
   double myPFTau_refInnerPosition_z = myPV.z();
 
-  if(myleadPFNeutralCand.isNonnull())myPFTau.setleadPFNeutralCand(myleadPFNeutralCand); 
+  if(myleadPFNeutralCand.isNonnull())
+  {
+     myPFTau.setleadPFNeutralCand(myleadPFNeutralCand); 
+  }
 
   //Modification to consider leading neutral particle
-  if(myleadPFChargedCand.isNonnull()) {
+  if(myleadPFChargedCand.isNonnull()) 
+  {
     myPFTau.setleadPFChargedHadrCand(myleadPFChargedCand);
     TrackRef myleadPFCand_rectk=(*myleadPFChargedCand).trackRef();
     if(myleadPFCand_rectk.isNonnull()){
@@ -206,10 +214,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     double myHCALIsolConeSize      = myPFTauElementsOperators.computeConeSize(myHCALIsolConeSizeTFormula      , HCALIsolConeSize_min_      , HCALIsolConeSize_max_      , transverseEnergy , energy, jetOpeningAngle);
     
     //Taking signal PFCandidates
-    PFCandidateRefVector mySignalPFChargedHadrCands,mySignalPFNeutrHadrCands,mySignalPFGammaCands,mySignalPFCands;
-    if (UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint_ && myleadPFCand_rectkavailable) mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_,ChargedHadrCandLeadChargedHadrCand_tksmaxDZ_,myleadPFCand_rectkDZ);
-
-    else mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_);
+    PFCandidateRefVector mySignalPFChargedHadrCands, mySignalPFNeutrHadrCands, mySignalPFGammaCands, mySignalPFCands;
+    if (UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint_ && myleadPFCand_rectkavailable) {
+       mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_,ChargedHadrCandLeadChargedHadrCand_tksmaxDZ_,myleadPFCand_rectkDZ);
+    }
+    else 
+    {
+       mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_);
+    }
 
     myPFTau.setsignalPFChargedHadrCands(mySignalPFChargedHadrCands);
 
@@ -220,13 +232,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     myPFTau.setsignalPFGammaCands(mySignalPFGammaCands);
     
     //Add charged objects to signal cone, and calculate charge
-    if((int)(mySignalPFChargedHadrCands.size())!=0){
-      int mySignalPFChargedHadrCands_qsum=0;       
-      for(int i=0;i<(int)mySignalPFChargedHadrCands.size();i++){
-	mySignalPFChargedHadrCands_qsum+=mySignalPFChargedHadrCands[i]->charge();
-	mySignalPFCands.push_back(mySignalPFChargedHadrCands[i]);
-      }
-      myPFTau.setCharge(mySignalPFChargedHadrCands_qsum);    
+    if((int)(mySignalPFChargedHadrCands.size())!=0)
+    {
+       int mySignalPFChargedHadrCands_qsum=0;       
+       for(int i=0; i<(int)mySignalPFChargedHadrCands.size();i++){
+          mySignalPFChargedHadrCands_qsum+=mySignalPFChargedHadrCands[i]->charge();
+          mySignalPFCands.push_back(mySignalPFChargedHadrCands[i]);
+       }
+       myPFTau.setCharge(mySignalPFChargedHadrCands_qsum);    
     }
     //Add neutral objects to signal cone
     for(int i=0; i<(int)mySignalPFNeutrHadrCands.size(); i++) 
