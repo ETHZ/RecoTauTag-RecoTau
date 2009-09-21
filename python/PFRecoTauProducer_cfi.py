@@ -37,7 +37,8 @@ pfRecoTauProducer = cms.EDProducer("PFRecoTauProducer",
       HCALIsolConeSize_max = cms.double(0.6),
 
       # Cut on the number of tracker hits on isolation PF charged hadrons
-      ChargedHadrCand_IsolAnnulus_minNhits = cms.uint32(8),
+      #ChargedHadrCand_IsolAnnulus_minNhits = cms.uint32(8), # this cut is now applied in the PFTauDiscriminator
+      ChargedHadrCand_IsolAnnulus_minNhits = cms.uint32(0),
 
       #Electron rejection parameters
       ElectronPreIDProducer                = cms.InputTag("elecpreid"),
@@ -83,6 +84,11 @@ pfRecoTauProducer = cms.EDProducer("PFRecoTauProducer",
       TrackLeadTrack_maxDZ          = cms.double(0.2),
       UseTrackLeadTrackDZconstraint = cms.bool(True),
       Track_IsolAnnulus_minNhits    = cms.uint32(3),
+      ### parameters for gammas in ellipse ###  					  
+      AddEllipseGammas = cms.bool(False),						  
+      Rphi = cms.double(2.0), ## factor*Reta; Reta is the standard ecal signal cone size   
+      MaxEtInEllipse = cms.double(2.0) # max pt for gammas inside the ellipse  	  
+      ########################################  					  
 
 )
  # * possible metrics : "DR", "angle", "area";

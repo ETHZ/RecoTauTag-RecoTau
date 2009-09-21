@@ -11,8 +11,8 @@
 <use name=FWCore/ParameterSet>
 <use name=FWCore/PluginManager>
 <use name=Geometry/CaloGeometry>
-<use name=Geometry/CaloEventSetup>
 <use name=Geometry/CaloTopology>
+<use name=Geometry/CaloEventSetup>
 <use name=Geometry/Records>
 <use name=Geometry/CommonDetUnit>
 <use name=TrackingTools/Records>
@@ -23,13 +23,13 @@
 <use name=RecoMuon/MuonIdentification>
 <use name=RecoVertex/KalmanVertexFit>
 <use name=PhysicsTools/CandUtils>
-<flags EDM_PLUGIN=1>
 <export>
   <use name=SimDataFormats/Vertex>
   <use name=DataFormats/TauReco>
   <use name=DataFormats/VertexReco>
   <use name=FWCore/Framework>
-  <use name=FWCore/MessageLogger> <use name=FWCore/ParameterSet>
+  <use name=FWCore/MessageLogger>
+  <use name=FWCore/ParameterSet>
   <use name=RecoTauTag/TauTagTools>
   <use name=RecoVertex/KalmanVertexFit>
   <use name=PhysicsTools/CandUtils>

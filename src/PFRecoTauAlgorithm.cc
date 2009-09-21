@@ -54,6 +54,12 @@ PFRecoTauAlgorithm::PFRecoTauAlgorithm(const ParameterSet& iConfig) : TransientT
   HCALIsolConeSize_min_               = iConfig.getParameter<double>("HCALIsolConeSize_min");
   HCALIsolConeSize_max_               = iConfig.getParameter<double>("HCALIsolConeSize_max");
   
+  // get paramaeters for ellipse EELL
+  Rphi_				      = iConfig.getParameter<double>("Rphi");
+  MaxEtInEllipse_		      = iConfig.getParameter<double>("MaxEtInEllipse");
+  AddEllipseGammas_		      = iConfig.getParameter<bool>("AddEllipseGammas");
+  // EELL
+  
   AreaMetric_recoElements_maxabsEta_    = iConfig.getParameter<double>("AreaMetric_recoElements_maxabsEta");
   ChargedHadrCand_IsolAnnulus_minNhits_ = iConfig.getParameter<uint32_t>("ChargedHadrCand_IsolAnnulus_minNhits");
   Track_IsolAnnulus_minNhits_           = iConfig.getParameter<uint32_t>("Track_IsolAnnulus_minNhits");
@@ -81,7 +87,11 @@ PFRecoTauAlgorithm::PFRecoTauAlgorithm(const ParameterSet& iConfig) : TransientT
  
 
 }
-void PFRecoTauAlgorithm::setTransientTrackBuilder(const TransientTrackBuilder* x){TransientTrackBuilder_=x;}
+
+void PFRecoTauAlgorithm::setTransientTrackBuilder(const TransientTrackBuilder* x)
+{
+   TransientTrackBuilder_ = x;
+}
 
 PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,const Vertex& myPV){
   PFJetRef myPFJet=(*myPFTauTagInfoRef).pfjetRef();  // catch a ref to the initial PFJet  
@@ -108,10 +118,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
   double myPFTau_refInnerPosition_y = myPV.y();
   double myPFTau_refInnerPosition_z = myPV.z();
 
-  if(myleadPFNeutralCand.isNonnull())myPFTau.setleadPFNeutralCand(myleadPFNeutralCand); 
+  if(myleadPFNeutralCand.isNonnull())
+  {
+     myPFTau.setleadPFNeutralCand(myleadPFNeutralCand); 
+  }
 
   //Modification to consider leading neutral particle
-  if(myleadPFChargedCand.isNonnull()) {
+  if(myleadPFChargedCand.isNonnull()) 
+  {
     myPFTau.setleadPFChargedHadrCand(myleadPFChargedCand);
     TrackRef myleadPFCand_rectk=(*myleadPFChargedCand).trackRef();
     if(myleadPFCand_rectk.isNonnull()){
@@ -200,10 +214,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     double myHCALIsolConeSize      = myPFTauElementsOperators.computeConeSize(myHCALIsolConeSizeTFormula      , HCALIsolConeSize_min_      , HCALIsolConeSize_max_      , transverseEnergy , energy, jetOpeningAngle);
     
     //Taking signal PFCandidates
-    PFCandidateRefVector mySignalPFChargedHadrCands,mySignalPFNeutrHadrCands,mySignalPFGammaCands,mySignalPFCands;
-    if (UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint_ && myleadPFCand_rectkavailable) mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_,ChargedHadrCandLeadChargedHadrCand_tksmaxDZ_,myleadPFCand_rectkDZ);
-
-    else mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_);
+    PFCandidateRefVector mySignalPFChargedHadrCands, mySignalPFNeutrHadrCands, mySignalPFGammaCands, mySignalPFCands;
+    if (UseChargedHadrCandLeadChargedHadrCand_tksDZconstraint_ && myleadPFCand_rectkavailable) {
+       mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_,ChargedHadrCandLeadChargedHadrCand_tksmaxDZ_,myleadPFCand_rectkDZ);
+    }
+    else 
+    {
+       mySignalPFChargedHadrCands=myPFTauElementsOperators.PFChargedHadrCandsInCone(myPFTau.momentum(),TrackerSignalConeMetric_,myTrackerSignalConeSize,PFTauAlgo_ChargedHadrCand_minPt_);
+    }
 
     myPFTau.setsignalPFChargedHadrCands(mySignalPFChargedHadrCands);
 
@@ -214,13 +232,14 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     myPFTau.setsignalPFGammaCands(mySignalPFGammaCands);
     
     //Add charged objects to signal cone, and calculate charge
-    if((int)(mySignalPFChargedHadrCands.size())!=0){
-      int mySignalPFChargedHadrCands_qsum=0;       
-      for(int i=0;i<(int)mySignalPFChargedHadrCands.size();i++){
-	mySignalPFChargedHadrCands_qsum+=mySignalPFChargedHadrCands[i]->charge();
-	mySignalPFCands.push_back(mySignalPFChargedHadrCands[i]);
-      }
-      myPFTau.setCharge(mySignalPFChargedHadrCands_qsum);    
+    if((int)(mySignalPFChargedHadrCands.size())!=0)
+    {
+       int mySignalPFChargedHadrCands_qsum=0;       
+       for(int i=0; i<(int)mySignalPFChargedHadrCands.size();i++){
+          mySignalPFChargedHadrCands_qsum+=mySignalPFChargedHadrCands[i]->charge();
+          mySignalPFCands.push_back(mySignalPFChargedHadrCands[i]);
+       }
+       myPFTau.setCharge(mySignalPFChargedHadrCands_qsum);    
     }
     //Add neutral objects to signal cone
     for(int i=0; i<(int)mySignalPFNeutrHadrCands.size(); i++) 
@@ -245,6 +264,37 @@ PFTau PFRecoTauAlgorithm::buildPFTau(const PFTauTagInfoRef& myPFTauTagInfoRef,co
     myPFTau.setisolationPFNeutrHadrCands(myIsolPFNeutrHadrCands);
     myIsolPFGammaCands=myPFTauElementsOperators.PFGammaCandsInAnnulus(myPFTau.momentum(),ECALSignalConeMetric_,myECALSignalConeSize,ECALIsolConeMetric_,myECALIsolConeSize,PFTauAlgo_GammaCand_minPt_);  
     myPFTau.setisolationPFGammaCands(myIsolPFGammaCands);
+    
+    //Incorporate converted gammas from isolation ellipse into signal  ... ELLL
+    //Get pair with in/out elements using the isoPFGammaCandidates set by default
+    if(AddEllipseGammas_){
+      double rPhi;
+      if(Rphi_ >= 1.) rPhi = Rphi_*myECALSignalConeSize;
+      else rPhi = Rphi_;
+      
+      pair<PFCandidateRefVector,PFCandidateRefVector> elementsInOutEllipse = myPFTauElementsOperators.PFGammaCandsInOutEllipse(myIsolPFGammaCands, *myleadPFCand, rPhi, myECALSignalConeSize, MaxEtInEllipse_);
+      PFCandidateRefVector elementsInEllipse = elementsInOutEllipse.first;
+      PFCandidateRefVector elementsOutEllipse = elementsInOutEllipse.second;
+      //add the inside elements to signal PFCandidates and reset signal PFCands
+      for(PFCandidateRefVector::const_iterator inEllipseIt = elementsInEllipse.begin(); inEllipseIt != elementsInEllipse.end(); inEllipseIt++){
+        mySignalPFCands.push_back(*inEllipseIt);
+	mySignalPFGammaCands.push_back(*inEllipseIt);
+      }
+      myPFTau.setsignalPFCands(mySignalPFCands);
+      //redefine isoPFGammaCandidates to be the outside elements
+      myIsolPFGammaCands=elementsOutEllipse;
+      myPFTau.setisolationPFGammaCands(myIsolPFGammaCands);
+   /*   
+      //reset four-momentum using elements in signal cone including newly added gammas
+      math::XYZTLorentzVector modifiedLorentzVect(0.,0.,0.,0.);
+      for(PFCandidateRefVector::const_iterator sigCandIt = mySignalPFCands.begin(); sigCandIt != mySignalPFCands.end(); sigCandIt++){
+        modifiedLorentzVect+=(**sigCandIt).p4();
+      }
+      myPFTau.setP4(modifiedLorentzVect);
+   */
+    }
+    // Incorporate ellipse ... ELLL
+
 
     //Fill isolation collections, and calculate pt sum in isolation cone
     float myIsolPFChargedHadrCands_Ptsum = 0.;
