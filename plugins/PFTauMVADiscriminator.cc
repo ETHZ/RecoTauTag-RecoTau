@@ -13,7 +13,7 @@
 //
 // Original Author:  Evan K. Friis, UC Davis (friis@physics.ucdavis.edu)
 //         Created:  Fri Aug 15 11:22:14 PDT 2008
-// $Id: PFTauMVADiscriminator.cc,v 1.2 2009/09/04 21:34:24 friis Exp $
+// $Id: PFTauMVADiscriminator.cc,v 1.2.2.2 2009/09/21 21:34:06 friis Exp $
 //
 //
 
@@ -139,7 +139,7 @@ void PFTauMVADiscriminator::beginEvent(const Event& iEvent, const EventSetup& iS
                        ++iMVAComputer)
    {
       string nameToGet = iMVAComputer->computerName;
-      iMVAComputer->computer->update<TauMVAFrameworkDBRcd>(iSetup, nameToGet.c_str());
+      iMVAComputer->computer->update<TauMVAFrameworkDBRcd>("TauMVASpecific", iSetup, nameToGet.c_str());
    } 
 }
 
