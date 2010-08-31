@@ -1,10 +1,10 @@
 /* 
- * class PFRecoTauDecayModeValueExtractor
+ * class PFRecoTauCorrectedInvariantMassProducer
  * created : April 16, 2009
  * revised : ,
  * Authors : Evan K. Friis, (UC Davis), Simone Gennai (SNS)
  *
- * Associates an extracted value from the the PFTauDecayMode production 
+ * Associates the invariant mass reconstruced in the PFTauDecayMode production 
  * to its underlying PFTau, in PFTau discriminator format.
  *
  * The following corrections are applied in the PFTauDecayMode production
@@ -18,38 +18,30 @@
 #include "RecoTauTag/RecoTau/interface/TauDiscriminationProducerBase.h"
 #include "DataFormats/TauReco/interface/PFTauDecayMode.h"
 #include "DataFormats/TauReco/interface/PFTauDecayModeAssociation.h"
-#include "CommonTools/Utils/interface/StringObjectFunction.h"
-#include <boost/shared_ptr.hpp>
 
-
-class PFRecoTauDecayModeValueExtractor : public PFTauDiscriminationProducerBase  
-{
+class PFRecoTauCorrectedInvariantMassProducer : public PFTauDiscriminationProducerBase  {
    public:
-      explicit PFRecoTauDecayModeValueExtractor(const ParameterSet& iConfig):
-         PFTauDiscriminationProducerBase(iConfig),
-         func_(new StringObjectFunction<reco::PFTauDecayMode>(iConfig.getParameter<string>("expression")))
-      {   
+      explicit PFRecoTauCorrectedInvariantMassProducer(const ParameterSet& iConfig):PFTauDiscriminationProducerBase(iConfig){   
          PFTauDecayModeProducer_     = iConfig.getParameter<InputTag>("PFTauDecayModeProducer");
       }
-      ~PFRecoTauDecayModeValueExtractor(){} 
+      ~PFRecoTauCorrectedInvariantMassProducer(){} 
       double discriminate(const PFTauRef& pfTau);
       void beginEvent(const Event& event, const EventSetup& evtSetup);
    private:
       InputTag PFTauDecayModeProducer_;
       Handle<PFTauDecayModeAssociation> theDMAssoc;
-      boost::shared_ptr<StringObjectFunction<reco::PFTauDecayMode> > func_;
 };
 
-void PFRecoTauDecayModeValueExtractor::beginEvent(const Event& event, const EventSetup& evtSetup)
+void PFRecoTauCorrectedInvariantMassProducer::beginEvent(const Event& event, const EventSetup& evtSetup)
 {
    // Get the PFTau Decay Modes
    event.getByLabel(PFTauDecayModeProducer_, theDMAssoc);
 }
 
-double PFRecoTauDecayModeValueExtractor::discriminate(const PFTauRef& thePFTauRef)
+double PFRecoTauCorrectedInvariantMassProducer::discriminate(const PFTauRef& thePFTauRef)
 {
    const PFTauDecayMode& theDecayMode = (*theDMAssoc)[thePFTauRef];
-   return (*func_)(theDecayMode);
+   return theDecayMode.mass();
 }
 
-DEFINE_FWK_MODULE(PFRecoTauDecayModeValueExtractor);
+DEFINE_FWK_MODULE(PFRecoTauCorrectedInvariantMassProducer);
