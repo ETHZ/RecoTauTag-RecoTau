@@ -15,7 +15,7 @@ process.source = cms.Source ("PoolSource", fileNames = cms.untracked.vstring(
 process.load("RecoTauTag.RecoTau.RecoTauPiZeroProducer_cfi")
 
 process.load("RecoTauTag.RecoTau.RecoTauCombinatoricProducer_cfi")
-process.load("RecoTauTag.RecoTau.RecoTauHPSTancTauProducer_cfi")
+process.load("RecoTauTag.RecoTau.RecoTauHPSTancTauProdcuer_cfi")
 
 process.load("Configuration.StandardSequences.Services_cff")
 
