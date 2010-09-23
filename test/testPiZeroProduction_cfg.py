@@ -15,7 +15,7 @@ process.source = cms.Source ("PoolSource", fileNames = cms.untracked.vstring(
 process.load("RecoTauTag.RecoTau.RecoTauPiZeroProducer_cfi")
 
 process.load("RecoTauTag.RecoTau.RecoTauCombinatoricProducer_cfi")
-process.load("RecoTauTag.RecoTau.RecoTauTancTauProducer_cfi")
+process.load("RecoTauTag.RecoTau.RecoTauHPSTancTauProducer_cfi")
 
 process.load("Configuration.StandardSequences.Services_cff")
 
@@ -25,5 +25,5 @@ process.GlobalTag.globaltag = "MC_36Y_V10::All"
 process.path = cms.Path(
      process.ak5PFJetsRecoTauPiZeros
     +process.combinatoricRecoTaus
-    +process.tancRecoTausSequence 
+    +process.hpsTancRecoTausSequence 
 )
