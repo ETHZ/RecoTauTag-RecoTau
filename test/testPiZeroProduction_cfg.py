@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("TEST")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
 
 process.source = cms.Source ("PoolSource", fileNames = cms.untracked.vstring(
     #'/store/relval/CMSSW_3_8_1/RelValZTT/GEN-SIM-RECO/START38_V8-v1/0011/F4817DF9-E9A1-DF11-AA95-0026189437E8.root',
@@ -16,14 +16,31 @@ process.load("RecoTauTag.RecoTau.RecoTauPiZeroProducer_cfi")
 
 process.load("RecoTauTag.RecoTau.RecoTauCombinatoricProducer_cfi")
 process.load("RecoTauTag.RecoTau.RecoTauHPSTancTauProdcuer_cfi")
+process.load("RecoTauTag.RecoTau.RecoTauShrinkingConeProducer_cfi")
+process.load("RecoTauTag.TauTagTools.TauTruthProduction_cfi")
 
 process.load("Configuration.StandardSequences.Services_cff")
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = "MC_36Y_V10::All"
 
+process.dumpTruth = cms.EDAnalyzer(
+    "TauGenJetDumper",
+    src = cms.InputTag("trueHadronicTaus")
+)
+
+process.dumpReco = cms.EDAnalyzer(
+    "RecoTauDumper",
+    src = cms.InputTag("shrinkingConeRecoTaus")
+)
+
+
 process.path = cms.Path(
      process.ak5PFJetsRecoTauPiZeros
     +process.combinatoricRecoTaus
+    +process.shrinkingConeRecoTaus
+    +process.tauTruthSequence
+    #+process.dumpTruth
+    #+process.dumpReco
     +process.hpsTancRecoTausSequence 
 )
