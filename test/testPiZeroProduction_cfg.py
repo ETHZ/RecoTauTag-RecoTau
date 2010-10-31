@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("TEST")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(500) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = cms.Source ("PoolSource", fileNames = cms.untracked.vstring(
     #'/store/relval/CMSSW_3_8_1/RelValZTT/GEN-SIM-RECO/START38_V8-v1/0011/F4817DF9-E9A1-DF11-AA95-0026189437E8.root',
@@ -34,13 +34,24 @@ process.dumpReco = cms.EDAnalyzer(
     src = cms.InputTag("shrinkingConeRecoTaus")
 )
 
+# Dump all the RecoTauPiZeros associated to the input jets into a plain vector
+process.flattenPiZeros = cms.EDProducer(
+    "RecoTauPiZeroFlattener",
+    jetSrc = cms.InputTag("ak5PFJets"),
+    piZeroSrc = cms.InputTag("ak5PFJetsRecoTauPiZeros"),
+)
+
+process.dumpContent = cms.EDAnalyzer('EventContentAnalyzer')
+
 
 process.path = cms.Path(
      process.ak5PFJetsRecoTauPiZeros
-    +process.combinatoricRecoTaus
-    +process.shrinkingConeRecoTaus
-    +process.tauTruthSequence
+    +process.flattenPiZeros
+    +process.dumpContent
+    #+process.combinatoricRecoTaus
+    #+process.shrinkingConeRecoTaus
+    #+process.tauTruthSequence
     #+process.dumpTruth
     #+process.dumpReco
-    +process.hpsTancRecoTausSequence 
+    #+process.hpsTancRecoTausSequence
 )
