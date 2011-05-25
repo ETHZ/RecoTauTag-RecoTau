@@ -3,6 +3,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
+#include <sstream>
 
 #include "CondFormats/DataRecord/interface/TauTagMVAComputerRcd.h"
 #include "DataFormats/TauReco/interface/PFTau.h"
@@ -19,10 +20,6 @@ RecoTauMVAHelper::RecoTauMVAHelper(const std::string& name,
 
 void RecoTauMVAHelper::setEvent(const edm::Event& evt,
                                 const edm::EventSetup &es) {
-  // Update the event info for all of our discriminators
-  BOOST_FOREACH(PluginMap::value_type plugin, plugins_) {
-    plugin.second->setup(evt, es);
-  }
   // Update our MVA from the DB
   using PhysicsTools::Calibration::MVAComputerContainer;
   edm::ESHandle<MVAComputerContainer> handle;
@@ -37,6 +34,10 @@ void RecoTauMVAHelper::setEvent(const edm::Event& evt,
   // If the MVA changed, update our list of discriminant plugins
   if (reload && computer_.get())
     loadDiscriminantPlugins(container->find(name_));
+  // Update the event info for all of our discriminators
+  BOOST_FOREACH(PluginMap::value_type plugin, plugins_) {
+    plugin.second->setup(evt, es);
+  }
 }
 
 void RecoTauMVAHelper::loadDiscriminantPlugins(
@@ -85,8 +86,12 @@ void RecoTauMVAHelper::fillValues(const reco::PFTauRef& tau) const {
     // Check for nans
     for(size_t instance = 0; instance < pluginOutput.size(); ++instance) {
       if (std::isnan(pluginOutput[instance])) {
-        edm::LogError("CorruptedMVAInput") << "A nan was detected in"
-            << " the tau MVA variable " << id << " returning zero instead!";
+        std::ostringstream error;
+        error << "A nan was detected in"
+            << " the tau MVA variable " << id << " returning zero instead!"
+            << " The PFTau: " << *tau << std::endl;
+        tau->dump(error);
+        edm::LogError("CorruptedMVAInput") << error.str();
         pluginOutput[instance] = 0.0;
       }
     }
