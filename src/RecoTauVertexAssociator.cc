@@ -104,9 +104,8 @@ void RecoTauVertexAssociator::setEvent(const edm::Event& evt) {
     vertices_.push_back(reco::VertexRef(verticesH_, i));
   }
   if (!vertices_.size()) {
-    edm::LogError("NoPV") 
-      << "There is no primary vertex in the event!!!"
-      << " InputTag: " << vertexTag_ << std::endl;
+    edm::LogError("NoPV") << "There is no primary vertex in the event!!!"
+      << std::endl;
   }
 }
 
