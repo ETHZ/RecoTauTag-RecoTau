@@ -23,10 +23,10 @@ class PFRecoTauDiscriminationAgainstElectronMVA : public PFTauDiscriminationProd
 	 inputFileName1prongStripsWOgsfEC_ = iConfig.getParameter<edm::FileInPath>("inputFileName1prongStripsWOgsfEC");
 
 	 returnMVA_                 = iConfig.getParameter<bool>("returnMVA");
-	 minMVA1prongBL_            = iConfig.getParameter<double>("minMVA1prong0BL");
+	 minMVA1prongBL_            = iConfig.getParameter<double>("minMVA1prongBL");
 	 minMVA1prongStripsWgsfBL_  = iConfig.getParameter<double>("minMVA1prongStripsWgsfBL");
 	 minMVA1prongStripsWOgsfBL_ = iConfig.getParameter<double>("minMVA1prongStripsWOgsfBL");
-	 minMVA1prongEC_            = iConfig.getParameter<double>("minMVA1prong0EC");
+	 minMVA1prongEC_            = iConfig.getParameter<double>("minMVA1prongEC");
 	 minMVA1prongStripsWgsfEC_  = iConfig.getParameter<double>("minMVA1prongStripsWgsfEC");
 	 minMVA1prongStripsWOgsfEC_ = iConfig.getParameter<double>("minMVA1prongStripsWOgsfEC");
 
@@ -39,7 +39,7 @@ class PFRecoTauDiscriminationAgainstElectronMVA : public PFTauDiscriminationProd
 			  inputFileName1prongStripsWgsfEC_.fullPath().data(),
 			  inputFileName1prongStripsWOgsfEC_.fullPath().data()
 			  );
-	 
+
 
       }
 
@@ -48,7 +48,7 @@ class PFRecoTauDiscriminationAgainstElectronMVA : public PFTauDiscriminationProd
   ~PFRecoTauDiscriminationAgainstElectronMVA(){ delete mva_;}
 
    private:
-     
+
   string method_ ;
   edm::FileInPath inputFileName1prongBL_;
   edm::FileInPath inputFileName1prongStripsWgsfBL_;
@@ -71,14 +71,14 @@ class PFRecoTauDiscriminationAgainstElectronMVA : public PFTauDiscriminationProd
 double PFRecoTauDiscriminationAgainstElectronMVA::discriminate(const PFTauRef& thePFTauRef)
 {
 
-  double mva          = -1.0;    
+  double mva          = -1.0;
   double workingPoint =  0.0;
- 
+
   if( (*thePFTauRef).leadPFChargedHadrCand().isNonnull() ) {
-    
+
     mva = mva_->MVAValue( thePFTauRef );
-    
-    workingPoint = 
+
+    workingPoint =
       ((*thePFTauRef).signalPFChargedHadrCands().size()==3 ||
        (fabs((*thePFTauRef).eta())<1.5 && ((*thePFTauRef).signalPFGammaCands().size())<=0 && mva > minMVA1prongBL_) ||
        (fabs((*thePFTauRef).eta())<1.5 && ((*thePFTauRef).signalPFGammaCands().size())>0  && (((*thePFTauRef).leadPFChargedHadrCand())->gsfTrackRef()).isNonnull()>0.5 && mva > minMVA1prongStripsWgsfBL_) ||
@@ -86,9 +86,9 @@ double PFRecoTauDiscriminationAgainstElectronMVA::discriminate(const PFTauRef& t
        (fabs((*thePFTauRef).eta())>1.5 && ((*thePFTauRef).signalPFGammaCands().size())<=0 && mva > minMVA1prongEC_) ||
        (fabs((*thePFTauRef).eta())>1.5 && ((*thePFTauRef).signalPFGammaCands().size())>0  && (((*thePFTauRef).leadPFChargedHadrCand())->gsfTrackRef()).isNonnull()>0.5 && mva > minMVA1prongStripsWgsfEC_) ||
        (fabs((*thePFTauRef).eta())>1.5 && ((*thePFTauRef).signalPFGammaCands().size())>0  && (((*thePFTauRef).leadPFChargedHadrCand())->gsfTrackRef()).isNonnull()<0.5 && mva > minMVA1prongStripsWOgsfEC_)) ? 1.0 : 0.0;
-    
+
   }
-  
+
   return ( returnMVA_ ? mva : workingPoint);
 
 }

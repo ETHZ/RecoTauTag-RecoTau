@@ -28,5 +28,3 @@ pfRecoTauDiscriminationAgainstElectronMVA = cms.EDProducer(
     minMVA1prongStripsWgsfEC  = cms.double(0.053),
     minMVA1prongStripsWOgsfEC = cms.double(0.049),
 )
-
-

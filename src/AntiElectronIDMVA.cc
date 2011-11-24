@@ -32,13 +32,13 @@ void AntiElectronIDMVA::Initialize(std::string methodName,
 
   TMVA::Tools::Instance();
 
-  TMVA::Reader *readerX0BL = new TMVA::Reader( "!Color:!Silent" );  
+  TMVA::Reader *readerX0BL = new TMVA::Reader( "!Color:Silent" );
   readerX0BL->AddVariable("HoP",       &TauLeadPFChargedHadrHoP_);
   readerX0BL->AddVariable("EoP",       &TauLeadPFChargedHadrEoP_);
   //readerX0BL->AddVariable("emFraction",&TauEmFraction_);
   readerX0BL->BookMVA( methodName_, oneProng0Pi0_BL );
 
-  TMVA::Reader *reader11BL = new TMVA::Reader( "!Color:!Silent" );   
+  TMVA::Reader *reader11BL = new TMVA::Reader( "!Color:Silent" );
   reader11BL->AddVariable("mva",               &TauLeadPFChargedHadrMva_);
   reader11BL->AddVariable("visMass",           &TauVisMass_);
   reader11BL->AddVariable("etaMom2*TMath::Sqrt(gammaFrac)*pt", &GammadEta_);
@@ -46,22 +46,22 @@ void AntiElectronIDMVA::Initialize(std::string methodName,
   reader11BL->AddVariable("gammaFrac",         &GammadPt_);
   reader11BL->BookMVA( methodName_, oneProng1pi0wGSF_BL );
 
-  TMVA::Reader *reader01BL = new TMVA::Reader( "!Color:!Silent" );   
+  TMVA::Reader *reader01BL = new TMVA::Reader( "!Color:Silent" );
   reader01BL->AddVariable("visMass",           &TauVisMass_);
   reader01BL->AddVariable("etaMom2*TMath::Sqrt(gammaFrac)*pt", &GammadEta_);
   reader01BL->AddVariable("phiMom2*TMath::Sqrt(gammaFrac)*pt", &GammadPhi_);
   reader01BL->AddVariable("gammaFrac",         &GammadPt_);
-  reader01BL->BookMVA( methodName_, oneProng1pi0woGSF_BL ); 
+  reader01BL->BookMVA( methodName_, oneProng1pi0woGSF_BL );
 
   //////////////////
 
-  TMVA::Reader *readerX0EC = new TMVA::Reader( "!Color:!Silent" );
+  TMVA::Reader *readerX0EC = new TMVA::Reader( "!Color:Silent" );
   readerX0EC->AddVariable("HoP",       &TauLeadPFChargedHadrHoP_);
   readerX0EC->AddVariable("EoP",       &TauLeadPFChargedHadrEoP_);
   //readerX0EC->AddVariable("emFraction",&TauEmFraction_);
   readerX0EC->BookMVA( methodName_, oneProng0Pi0_EC );
 
-  TMVA::Reader *reader11EC = new TMVA::Reader( "!Color:!Silent" );
+  TMVA::Reader *reader11EC = new TMVA::Reader( "!Color:Silent" );
   reader11EC->AddVariable("mva",               &TauLeadPFChargedHadrMva_);
   reader11EC->AddVariable("visMass",           &TauVisMass_);
   reader11EC->AddVariable("etaMom2*TMath::Sqrt(gammaFrac)*pt", &GammadEta_);
@@ -69,7 +69,7 @@ void AntiElectronIDMVA::Initialize(std::string methodName,
   reader11EC->AddVariable("gammaFrac",         &GammadPt_);
   reader11EC->BookMVA( methodName_, oneProng1pi0wGSF_EC );
 
-  TMVA::Reader *reader01EC = new TMVA::Reader( "!Color:!Silent" );
+  TMVA::Reader *reader01EC = new TMVA::Reader( "!Color:Silent" );
   reader01EC->AddVariable("visMass",           &TauVisMass_);
   reader01EC->AddVariable("etaMom2*TMath::Sqrt(gammaFrac)*pt", &GammadEta_);
   reader01EC->AddVariable("phiMom2*TMath::Sqrt(gammaFrac)*pt", &GammadPhi_);
@@ -89,16 +89,16 @@ void AntiElectronIDMVA::Initialize(std::string methodName,
 
 
 double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
-				   Float_t TauSignalPFChargedCands, Float_t TauSignalPFGammaCands, 
-				   Float_t TauLeadPFChargedHadrMva, 
-				   Float_t TauLeadPFChargedHadrHoP, Float_t TauLeadPFChargedHadrEoP, 
+				   Float_t TauSignalPFChargedCands, Float_t TauSignalPFGammaCands,
+				   Float_t TauLeadPFChargedHadrMva,
+				   Float_t TauLeadPFChargedHadrHoP, Float_t TauLeadPFChargedHadrEoP,
 				   Float_t TauHasGsf, Float_t TauVisMass,  Float_t TauEmFraction,
 				   vector<Float_t>* GammasdEta, vector<Float_t>* GammasdPhi, vector<Float_t>* GammasPt
 				   ){
 
   double mva;
 
-  TauVisMass_              = TauVisMass; 
+  TauVisMass_              = TauVisMass;
   TauLeadPFChargedHadrMva_ = TMath::Max(TauLeadPFChargedHadrMva,float(-1.0));
   TauLeadPFChargedHadrHoP_ = TauLeadPFChargedHadrHoP;
   TauLeadPFChargedHadrEoP_ = TauLeadPFChargedHadrEoP;
@@ -122,7 +122,7 @@ double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
     dEta   += (pt_k*eta_k);
     dEta2  += (pt_k*eta_k*eta_k);
     dPhi   += (pt_k*phi_k);
-    dPhi2  += (pt_k*phi_k*phi_k);  
+    dPhi2  += (pt_k*phi_k*phi_k);
   }
 
   GammadPt_ = sumPt/TauPt;
@@ -137,29 +137,29 @@ double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
 
   //GammadEta_ = dEta;
   //GammadPhi_ = dPhi;
-  
+
   GammadEta_ = TMath::Sqrt(dEta2)*TMath::Sqrt(GammadPt_)*TauPt;
   GammadPhi_ = TMath::Sqrt(dPhi2)*TMath::Sqrt(GammadPt_)*TauPt;
 
 
-  if( TauSignalPFChargedCands==3 ) 
+  if( TauSignalPFChargedCands==3 )
     mva = 1.0;
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands==0){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[0]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[3]->EvaluateMVA( methodName_ );
   }
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands>0 && TauHasGsf>0.5){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[1]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[4]->EvaluateMVA( methodName_ );
   }
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands>0 && TauHasGsf<0.5){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[2]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[5]->EvaluateMVA( methodName_ );
   }
   else{
@@ -171,16 +171,16 @@ double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
 }
 
 double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
-				   Float_t TauSignalPFChargedCands, Float_t TauSignalPFGammaCands, 
-				   Float_t TauLeadPFChargedHadrMva, 
-				   Float_t TauLeadPFChargedHadrHoP, Float_t TauLeadPFChargedHadrEoP, 
+				   Float_t TauSignalPFChargedCands, Float_t TauSignalPFGammaCands,
+				   Float_t TauLeadPFChargedHadrMva,
+				   Float_t TauLeadPFChargedHadrHoP, Float_t TauLeadPFChargedHadrEoP,
 				   Float_t TauHasGsf, Float_t TauVisMass,  Float_t TauEmFraction,
 				   Float_t GammaEtaMom, Float_t GammaPhiMom, Float_t GammaEnFrac
 				   ){
 
   double mva;
 
-  TauVisMass_              = TauVisMass; 
+  TauVisMass_              = TauVisMass;
   TauLeadPFChargedHadrMva_ = TMath::Max(TauLeadPFChargedHadrMva,float(-1.0));
   TauLeadPFChargedHadrHoP_ = TauLeadPFChargedHadrHoP;
   TauLeadPFChargedHadrEoP_ = TauLeadPFChargedHadrEoP;
@@ -188,25 +188,25 @@ double AntiElectronIDMVA::MVAValue(Float_t TauEta, Float_t TauPt,
   GammadPt_                = GammaEnFrac;
   GammadEta_               = GammaEtaMom;
   GammadPhi_               = GammaPhiMom;
-  
-  if( TauSignalPFChargedCands==3 ) 
+
+  if( TauSignalPFChargedCands==3 )
     mva = 1.0;
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands==0){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[0]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[3]->EvaluateMVA( methodName_ );
   }
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands>0 && TauHasGsf>0.5){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[1]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[4]->EvaluateMVA( methodName_ );
   }
   else if( TauSignalPFChargedCands==1 && TauSignalPFGammaCands>0 && TauHasGsf<0.5){
-    if(TMath::Abs(TauEta)<1.5) 
+    if(TMath::Abs(TauEta)<1.5)
       mva = fTMVAReader_[2]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[5]->EvaluateMVA( methodName_ );
   }
   else{
@@ -223,7 +223,7 @@ double AntiElectronIDMVA::MVAValue(const reco::PFTauRef& thePFTauRef){
 
   double mva;
 
-  TauVisMass_              = (*thePFTauRef).mass(); 
+  TauVisMass_              = (*thePFTauRef).mass();
   TauLeadPFChargedHadrMva_ = TMath::Max((*thePFTauRef).electronPreIDOutput(),float(-1.0));
   TauLeadPFChargedHadrHoP_ = ((*thePFTauRef).leadPFChargedHadrCand())->hcalEnergy()/(*thePFTauRef).leadPFChargedHadrCand()->p();
   TauLeadPFChargedHadrEoP_ = ((*thePFTauRef).leadPFChargedHadrCand())->ecalEnergy()/(*thePFTauRef).leadPFChargedHadrCand()->p();
@@ -264,7 +264,7 @@ double AntiElectronIDMVA::MVAValue(const reco::PFTauRef& thePFTauRef){
     dEta   += (pt_k*eta_k);
     dEta2  += (pt_k*eta_k*eta_k);
     dPhi   += (pt_k*phi_k);
-    dPhi2  += (pt_k*phi_k*phi_k);  
+    dPhi2  += (pt_k*phi_k*phi_k);
   }
 
   GammadPt_ = sumPt/(*thePFTauRef).pt();
@@ -278,28 +278,28 @@ double AntiElectronIDMVA::MVAValue(const reco::PFTauRef& thePFTauRef){
 
   //GammadEta_ = dEta;
   //GammadPhi_ = dPhi;
-  
+
   GammadEta_ = TMath::Sqrt(dEta2)*TMath::Sqrt(GammadPt_)*(*thePFTauRef).pt();
   GammadPhi_ = TMath::Sqrt(dPhi2)*TMath::Sqrt(GammadPt_)*(*thePFTauRef).pt();
 
-  if( ((*thePFTauRef).signalPFChargedHadrCands()).size() == 3) 
+  if( ((*thePFTauRef).signalPFChargedHadrCands()).size() == 3)
     mva = 1.0;
   else if( ((*thePFTauRef).signalPFChargedHadrCands()).size()==1 && ((*thePFTauRef).signalPFGammaCands()).size()==0){
-    if(TMath::Abs((*thePFTauRef).eta())<1.5) 
+    if(TMath::Abs((*thePFTauRef).eta())<1.5)
       mva = fTMVAReader_[0]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[3]->EvaluateMVA( methodName_ );
   }
   else if( ((*thePFTauRef).signalPFChargedHadrCands()).size()==1 && ((*thePFTauRef).signalPFGammaCands()).size()>0 && (((*thePFTauRef).leadPFChargedHadrCand())->gsfTrackRef()).isNonnull()){
-    if(TMath::Abs((*thePFTauRef).eta())<1.5) 
+    if(TMath::Abs((*thePFTauRef).eta())<1.5)
       mva = fTMVAReader_[1]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[4]->EvaluateMVA( methodName_ );
   }
   else if( ((*thePFTauRef).signalPFChargedHadrCands()).size()==1 && TauSignalPFGammaCands_>0 && !(((*thePFTauRef).leadPFChargedHadrCand())->gsfTrackRef()).isNonnull()){
-    if(TMath::Abs((*thePFTauRef).eta())<1.5) 
+    if(TMath::Abs((*thePFTauRef).eta())<1.5)
       mva = fTMVAReader_[2]->EvaluateMVA( methodName_ );
-    else  
+    else
       mva = fTMVAReader_[5]->EvaluateMVA( methodName_ );
   }
   else{
