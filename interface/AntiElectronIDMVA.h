@@ -20,7 +20,6 @@
 */
 
 
-
 #ifndef RECOTAUTAG_RECOTAU_AntiElectronIDMVA_H
 #define RECOTAUTAG_RECOTAU_AntiElectronIDMVA_H
 
@@ -105,6 +104,7 @@ class AntiElectronIDMVA {
 
  private:
 
+    Bool_t isInitialized_;
     std::string methodName_;
     TMVA::Reader* fTMVAReader_[6];
     Float_t TauSignalPFGammaCands_; 
