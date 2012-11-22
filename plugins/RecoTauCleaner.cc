@@ -54,6 +54,10 @@ class RecoTauCleanerImpl : public edm::EDProducer {
     void produce(edm::Event& evt, const edm::EventSetup& es);
 
   private:
+    // Define scoring predicate for taus
+    typedef reco::tau::RecoTauLexicographicalRanking<
+      CleanerList, reco::PFTauRef> Predicate;
+    std::auto_ptr<Predicate> predicate_;
     edm::InputTag tauSrc_;
     CleanerList cleaners_;
     // Optional selection on the output of the taus
@@ -86,7 +90,9 @@ RecoTauCleanerImpl<Prod>::RecoTauCleanerImpl(const edm::ParameterSet& pset) {
     }
   }
 
-  // Build the predicate that ranks our taus.  
+  // Build the predicate that ranks our taus.  The predicate takes a list of
+  // cleaners, and uses them to create a lexicographic ranking.
+  predicate_ = std::auto_ptr<Predicate>(new Predicate(cleaners_));
   produces<Prod>();
 }
 
@@ -126,25 +132,12 @@ void RecoTauCleanerImpl<Prod>::produce(edm::Event& evt,
   // Make an STL algorithm friendly vector of refs
   typedef std::vector<reco::PFTauRef> PFTauRefs;
   // Collection of all taus. Some are from the same PFJet. We must clean them.
-  PFTauRefs dirty(inputRefs.size());
- 
+  PFTauRefs dirty;
+  dirty.reserve(inputRefs.size());
+  std::copy(inputRefs.begin(), inputRefs.end(), std::back_inserter(dirty));
+
   // Sort the input tau refs according to our predicate
-  auto N = inputRefs.size();
-  auto CN = cleaners_.size();
-  int index[N];
-  for (decltype(N) i=0; i!=N; ++i) index[i]=i;
-  float  ranks[N*CN];
-  // auto ranks = [rr,CN](int i, int j){return rr[i*CN+j];};
-  // float const * *  rr = ranks;
-  decltype(N) ii=0;
-  for (decltype(N) ir=0; ir!=N; ++ir)
-    for(decltype(N) cl=0;cl!=CN;++cl)
-      ranks[ii++]=cleaners_[cl](inputRefs[ir]);
-  assert(ii==(N*CN));
-  const float * rr = ranks;
-  std::sort(index,index+N,[rr,CN](int i, int j) { return std::lexicographical_compare(rr+i*CN,rr+i*CN+CN,rr+j*CN,rr+j*CN+CN);});
-  for (decltype(N) ir=0; ir!=N; ++ir)
-    dirty[ir]=inputRefs[index[ir]];
+  std::sort(dirty.begin(), dirty.end(), *predicate_);
 
   // Clean the taus, ensuring that only one tau per jet is produced
   PFTauRefs cleanTaus = reco::tau::cleanOverlaps<PFTauRefs,
