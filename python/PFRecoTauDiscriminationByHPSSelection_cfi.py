@@ -41,7 +41,7 @@ hpsSelectionDiscriminator = cms.EDProducer(
             nPiZeros = cms.uint32(0),
             minMass = cms.double(0.8),
             maxMass = cms.string("1.5")
-        ),
+        )
     )
 )
 
