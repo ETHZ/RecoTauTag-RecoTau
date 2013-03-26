@@ -47,6 +47,20 @@ combinatoricDecayModeConfigs = cms.PSet(
         maxTracks = cms.uint32(6),
         maxPiZeros = cms.uint32(5),
     ),
+    config2prong0pi0 = cms.PSet(
+        # Three prong no pizero mode (one of the tracks failed to get reconstructed)
+        nCharged = cms.uint32(2),
+        nPiZeros = cms.uint32(0),
+        maxTracks = cms.uint32(6),
+        maxPiZeros = cms.uint32(0),
+    ),
+    config2prong1pi0 = cms.PSet(
+        # Three prong one pizero mode (one of the tracks failed to get reconstructed)
+        nCharged = cms.uint32(2),
+        nPiZeros = cms.uint32(1),
+        maxTracks = cms.uint32(6),
+        maxPiZeros = cms.uint32(3),
+    ),
     config3prong0pi0 = cms.PSet(
         # Three prong no pizero mode
         nCharged = cms.uint32(3),
@@ -74,6 +88,8 @@ _combinatoricTauConfig = cms.PSet(
         combinatoricDecayModeConfigs.config1prong0pi0,
         combinatoricDecayModeConfigs.config1prong1pi0,
         combinatoricDecayModeConfigs.config1prong2pi0,
+        combinatoricDecayModeConfigs.config2prong0pi0,
+        combinatoricDecayModeConfigs.config2prong1pi0,
         combinatoricDecayModeConfigs.config3prong0pi0,
         #combinatoricDecayModeConfigs.config3prong1pi0,
     )
