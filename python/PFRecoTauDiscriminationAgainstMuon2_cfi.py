@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from RecoTauTag.RecoTau.TauDiscriminatorTools import requireLeadTrack
 
-pfRecoTauDiscriminationAgainstMuon = cms.EDProducer("PFRecoTauDiscriminationAgainstMuon",
+pfRecoTauDiscriminationAgainstMuon2 = cms.EDProducer("PFRecoTauDiscriminationAgainstMuon2",
     
     # tau collection to discriminate
     PFTauProducer = cms.InputTag('pfRecoTauProducer'),
@@ -13,14 +13,11 @@ pfRecoTauDiscriminationAgainstMuon = cms.EDProducer("PFRecoTauDiscriminationAgai
     Prediscriminants = requireLeadTrack,
 
     # algorithm parameters
-    a = cms.double(0.5), ## user definde 2D Cut. Reject tau if calo * a + seg * b < 0 
-
-    b = cms.double(0.5),
-    c = cms.double(0.0),
+    discriminatorOption = cms.string('loose'), # available options are: 'loose', 'medium', 'tight' and 'custom'
     HoPMin = cms.double(0.2),
-    discriminatorOption = cms.string('noSegMatch'), ## available options are; noSegMatch, twoDCut, merePresence, combined
-    maxNumberOfMatches = cms.int32(0),
-    checkNumMatches = cms.bool(False)
+    maxNumberOfMatches = cms.int32(0), # negative value would turn off this cut in case of 'custom' discriminator 
+    doCaloMuonVeto = cms.bool(False),
+    maxNumberOfHitsLast2Stations = cms.int32(0) # negative value would turn off this cut in case of 'custom' discriminator 
 )
 
 
