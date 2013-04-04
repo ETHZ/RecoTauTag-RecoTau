@@ -36,6 +36,7 @@
 #include "RecoTauTag/RecoTau/interface/RecoTauVertexAssociator.h"
 
 #include <memory>
+#include <math.h>
 
 namespace reco { 
 
