@@ -102,8 +102,12 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
     std::vector<reco::PFCandidatePtr> jetConstituents = jet.getPFConstituents();
     for ( std::vector<reco::PFCandidatePtr>::const_iterator jetConstituent = jetConstituents.begin();
 	  jetConstituent != jetConstituents.end(); ++jetConstituent ) {
+      // CV: take care of not double-counting energy in case "charged" PFCandidate is in fact a PFNeutralHadron
+      if ( (*jetConstituent) == chargedHadron->chargedPFCandidate_ ) continue;
+
       reco::PFCandidate::ParticleType jetConstituentType = (*jetConstituent)->particleId();
       if ( !(jetConstituentType == reco::PFCandidate::h0 || jetConstituentType == reco::PFCandidate::gamma) ) continue;
+
       double dR = deltaR((*jetConstituent)->positionAtECALEntrance(), chargedHadron->positionAtECALEntrance_);
       double dRmerge = -1.;      
       if      ( jetConstituentType == reco::PFCandidate::h0    ) dRmerge = dRmergeNeutralHadron_;
