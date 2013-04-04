@@ -245,7 +245,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   if (includeTracks_) {
     BOOST_FOREACH(const reco::PFCandidateRef& cand,
         pfTau->isolationPFChargedHadrCands()) {
-      if (qcuts_->filterRef(cand))
+      if (qcuts_->filterCandRef(cand))
         isoCharged.push_back(cand);
     }
   }
@@ -253,7 +253,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   if (includeGammas_) {
     BOOST_FOREACH(const reco::PFCandidateRef& cand,
         pfTau->isolationPFGammaCands()) {
-      if (qcuts_->filterRef(cand))
+      if (qcuts_->filterCandRef(cand))
         isoNeutral.push_back(cand);
     }
   }
@@ -266,14 +266,14 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     //  << std::endl;
 
     std::vector<PFCandidateRef> allPU =
-      pileupQcutsPUTrackSelection_->filterRefs(
+      pileupQcutsPUTrackSelection_->filterCandRefs(
           chargedPFCandidatesInEvent_, true);
 
     //std::cout << "After track cuts: " << allPU.size() << std::endl;
 
     // Now apply the rest of the cuts, like pt, and TIP, tracker hits, etc
     std::vector<PFCandidateRef> cleanPU =
-      pileupQcutsGeneralQCuts_->filterRefs(allPU);
+      pileupQcutsGeneralQCuts_->filterCandRefs(allPU);
 
     //std::cout << "After cleaning cuts: " << cleanPU.size() << std::endl;
 

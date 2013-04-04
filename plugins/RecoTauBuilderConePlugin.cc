@@ -94,23 +94,23 @@ RecoTauBuilderConePlugin::return_type RecoTauBuilderConePlugin::operator()(
   // Get the PF Charged hadrons + quality cuts
   PFCandPtrs pfchs;
   if (!usePFLeptonsAsChargedHadrons_) {
-    pfchs = qcuts_.filterRefs(pfCandidates(*jet, reco::PFCandidate::h));
+    pfchs = qcuts_.filterCandRefs(pfCandidates(*jet, reco::PFCandidate::h));
   } else {
     // Check if we want to include electrons in muons in "charged hadron"
     // collection.  This is the preferred behavior, as the PF lepton selections
     // are very loose.
-    pfchs = qcuts_.filterRefs(pfChargedCands(*jet));
+    pfchs = qcuts_.filterCandRefs(pfChargedCands(*jet));
   }
 
   // Get the PF gammas
-  PFCandPtrs pfGammas = qcuts_.filterRefs(
+  PFCandPtrs pfGammas = qcuts_.filterCandRefs(
       pfCandidates(*jet, reco::PFCandidate::gamma));
   // Neutral hadrons
-  PFCandPtrs pfnhs = qcuts_.filterRefs(
+  PFCandPtrs pfnhs = qcuts_.filterCandRefs(
       pfCandidates(*jet, reco::PFCandidate::h0));
 
   // All the extra junk
-  PFCandPtrs regionalJunk = qcuts_.filterRefs(regionalExtras);
+  PFCandPtrs regionalJunk = qcuts_.filterCandRefs(regionalExtras);
 
   /***********************************************
    ******     Lead Candidate Finding    **********

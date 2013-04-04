@@ -157,7 +157,7 @@ void RecoTauEnergyRecoveryPlugin::operator()(PFTau& tau) const
       if ( track.isNonnull() ) {
 	double trackPt = track->pt();
 	double trackPtErr = track->ptError();
-	if ( qcuts_->filter(**pfJetConstituent) &&
+	if ( qcuts_->filterCand(**pfJetConstituent) &&
 	     trackPtErr < (0.20*trackPt) && track->normalizedChi2() < 5.0 && track->hitPattern().numberOfValidPixelHits() >= 1 &&
 	     (trackPt - 3.*trackPtErr) > (*pfJetConstituent)->pt() && trackPt < (3.*tau.jetRef()->pt()) ) {
 	  if ( track->p() > leadTrackMom ) {
