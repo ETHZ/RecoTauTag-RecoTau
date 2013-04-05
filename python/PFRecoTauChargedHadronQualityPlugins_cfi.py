@@ -13,7 +13,7 @@ isChargedPFCandidate = cms.PSet(
     name = cms.string('ChargedPFCandidate'),
     plugin = cms.string('PFRecoTauChargedHadronStringQuality'),
     selection = cms.string("algoIs('kChargedPFCandidate')"),
-    selectionPassFunction = cms.string("0."),
+    selectionPassFunction = cms.string("-pt"), # CV: give preference to highest Pt candidate
     selectionFailValue = cms.double(1.e+3)
 )
 
