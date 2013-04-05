@@ -62,6 +62,9 @@ class PFRecoTauChargedHadronFromTrackPlugin : public PFRecoTauChargedHadronBuild
   edm::InputTag srcTracks_;
   double dRcone_;
 
+  double dRmergeNeutralHadron_;
+  double dRmergePhoton_;
+
   math::XYZVector magneticFieldStrength_;
 };
 
@@ -75,6 +78,9 @@ PFRecoTauChargedHadronFromTrackPlugin::PFRecoTauChargedHadronFromTrackPlugin(con
 
   srcTracks_ = pset.getParameter<edm::InputTag>("srcTracks");
   dRcone_ = pset.getParameter<double>("dRcone");
+
+  dRmergeNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadron");
+  dRmergePhoton_ = pset.getParameter<double>("dRmergePhoton");
 }
   
 PFRecoTauChargedHadronFromTrackPlugin::~PFRecoTauChargedHadronFromTrackPlugin()
@@ -92,6 +98,20 @@ void PFRecoTauChargedHadronFromTrackPlugin::beginEvent()
   magneticFieldStrength_ = magneticField->inTesla(GlobalPoint(0.,0.,0.));
 }
 
+namespace
+{
+  struct PFCandidate_withDistance 
+  {
+    reco::PFCandidatePtr pfCandidate_;
+    double distance_;
+  };
+
+  bool isSmallerDistance(const PFCandidate_withDistance& cand1, const PFCandidate_withDistance& cand2)
+  {
+    return (cand1.distance_ < cand2.distance_);
+  }
+}
+
 PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTrackPlugin::operator()(const reco::PFJet& jet) const 
 {
   ChargedHadronVector output;
@@ -106,11 +126,11 @@ PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTra
   size_t numTracks = tracks->size();
   for ( size_t iTrack = 0; iTrack < numTracks; ++iTrack ) {
     reco::TrackRef track(tracks, iTrack);
-    
+
     // consider tracks in vicinity of tau-jet candidate only
     double dR = deltaR(track->eta(), track->phi(), jet.eta(), jet.phi());
     if ( dR > dRcone_ ) continue;
-    
+
     // ignore tracks which fail quality cuts
     if ( !qcuts_->filterTrack(track) ) continue;
 
@@ -128,21 +148,65 @@ PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTra
     std::auto_ptr<PFRecoTauChargedHadron> chargedHadron(new PFRecoTauChargedHadron(trackCharge_int, p4, vtx, 0, true, PFRecoTauChargedHadron::kTrack));
     chargedHadron->track_ = edm::Ptr<reco::Track>(tracks, iTrack);
 
-    // CV: take code for propagating track to ECAL entrance 
+    // CV: Take code for propagating track to ECAL entrance 
     //     from RecoParticleFlow/PFTracking/src/PFTrackTransformer.cc
-    //     to make sure propagation is done in the same way as for charged PFCandidates
-    double chargedPionEn_out = sqrt(chargedPionMass*chargedPionMass + track->outerMomentum().Mag2());
-    reco::Candidate::LorentzVector chargedPionP4_out(track->outerMomentum().x(), track->outerMomentum().y(), track->outerMomentum().z(), chargedPionEn_out);
-    XYZTLorentzVector chargedPionPos_out(track->outerPosition().x(), track->outerPosition().y(), track->outerPosition().z(), 0.);
-    BaseParticlePropagator trackPropagator(RawParticle(chargedPionP4_out, chargedPionPos_out), 0., 0., magneticFieldStrength_.z());
+    //     to make sure propagation is done in the same way as for charged PFCandidates.
+    //     
+    //     The following replacements need to be made
+    //       outerMomentum -> momentum
+    //       outerPosition -> referencePoint
+    //     in order to run on AOD input
+    //    (outerMomentum and outerPosition require access to reco::TrackExtra objects, which are available in RECO only)
+    //
+    double chargedPionEn = sqrt(chargedPionMass*chargedPionMass + track->momentum().Mag2());
+    reco::Candidate::LorentzVector chargedPionP4(track->momentum().x(), track->momentum().y(), track->momentum().z(), chargedPionEn);
+    XYZTLorentzVector chargedPionPos(track->referencePoint().x(), track->referencePoint().y(), track->referencePoint().z(), 0.);
+    BaseParticlePropagator trackPropagator(RawParticle(chargedPionP4, chargedPionPos), 0., 0., magneticFieldStrength_.z());
     trackPropagator.setCharge(track->charge());
     trackPropagator.propagateToEcalEntrance(false);
     if ( trackPropagator.getSuccess() != 0 ) { 
       chargedHadron->positionAtECALEntrance_ = trackPropagator.vertex();
     } else {
-      edm::LogWarning("PFRecoTauChargedHadronFromTrackPlugin::operator()") 
-	<< "Failed to propagate track: Pt = " << track->pt() << ", eta = " << track->eta() << ", phi = " << track->phi() << " to ECAL entrance !!" << std::endl;
+      if ( chargedPionP4.pt() > 2. ) {
+	edm::LogWarning("PFRecoTauChargedHadronFromTrackPlugin::operator()") 
+	  << "Failed to propagate track: Pt = " << track->pt() << ", eta = " << track->eta() << ", phi = " << track->phi() << " to ECAL entrance !!" << std::endl;
+      }
       chargedHadron->positionAtECALEntrance_ = math::XYZPointF(0.,0.,0.);
+    }
+
+    std::vector<PFCandidate_withDistance> neutralJetConstituents_withDistance;
+    std::vector<reco::PFCandidatePtr> jetConstituents = jet.getPFConstituents();
+    for ( std::vector<reco::PFCandidatePtr>::const_iterator jetConstituent = jetConstituents.begin();
+	  jetConstituent != jetConstituents.end(); ++jetConstituent ) {
+      reco::PFCandidate::ParticleType jetConstituentType = (*jetConstituent)->particleId();
+      if ( !(jetConstituentType == reco::PFCandidate::h0 || jetConstituentType == reco::PFCandidate::gamma) ) continue;
+      double dR = deltaR((*jetConstituent)->eta(), (*jetConstituent)->phi(), track->eta(), track->phi());
+      double dRmerge = -1.;      
+      if      ( jetConstituentType == reco::PFCandidate::h0    ) dRmerge = dRmergeNeutralHadron_;
+      else if ( jetConstituentType == reco::PFCandidate::gamma ) dRmerge = dRmergePhoton_;
+      if ( dR < dRmerge ) {
+	PFCandidate_withDistance jetConstituent_withDistance;
+	jetConstituent_withDistance.pfCandidate_ = (*jetConstituent);
+	jetConstituent_withDistance.distance_ = dR;
+	neutralJetConstituents_withDistance.push_back(jetConstituent_withDistance);
+      }
+    }
+    std::sort(neutralJetConstituents_withDistance.begin(), neutralJetConstituents_withDistance.end(), isSmallerDistance);
+
+    const double caloResolutionCoeff = 1.0; // CV: approximate ECAL + HCAL calorimeter resolution for hadrons by 100%*sqrt(E)
+    double resolutionTrackP = track->p()*(track->ptError()/track->pt());
+    double neutralEnSum = 0.;
+    for ( std::vector<PFCandidate_withDistance>::const_iterator nextNeutral = neutralJetConstituents_withDistance.begin();
+	  nextNeutral != neutralJetConstituents_withDistance.end(); ++nextNeutral ) {
+      double nextNeutralEn = nextNeutral->pfCandidate_->energy();      
+      double resolutionCaloEn = caloResolutionCoeff*sqrt(neutralEnSum + nextNeutralEn);
+      double resolution = sqrt(resolutionTrackP*resolutionTrackP + resolutionCaloEn*resolutionCaloEn);
+      if ( (neutralEnSum + nextNeutralEn) < (track->p() + 2.*resolution) ) {
+	chargedHadron->neutralPFCandidates_.push_back(nextNeutral->pfCandidate_);
+	neutralEnSum += nextNeutralEn;
+      } else {
+	break;
+      }
     }
 
     output.push_back(chargedHadron);
