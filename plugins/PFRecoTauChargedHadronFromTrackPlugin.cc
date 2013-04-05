@@ -180,7 +180,7 @@ PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTra
 	  jetConstituent != jetConstituents.end(); ++jetConstituent ) {
       reco::PFCandidate::ParticleType jetConstituentType = (*jetConstituent)->particleId();
       if ( !(jetConstituentType == reco::PFCandidate::h0 || jetConstituentType == reco::PFCandidate::gamma) ) continue;
-      double dR = deltaR((*jetConstituent)->eta(), (*jetConstituent)->phi(), track->eta(), track->phi());
+      double dR = deltaR((*jetConstituent)->positionAtECALEntrance(), chargedHadron->positionAtECALEntrance_);
       double dRmerge = -1.;      
       if      ( jetConstituentType == reco::PFCandidate::h0    ) dRmerge = dRmergeNeutralHadron_;
       else if ( jetConstituentType == reco::PFCandidate::gamma ) dRmerge = dRmergePhoton_;
