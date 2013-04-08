@@ -21,10 +21,6 @@ bool reco::details::hasEnding(std::string const &fullString, std::string const &
 char* reco::details::readGzipFile(const std::string& weightFile)
 {
   FILE *f = fopen(weightFile.c_str(), "r");
-  if (f==NULL) {
-    throw cms::Exception("InvalidFileState")
-      << "Failed to open MVA file = " << weightFile << " !!\n";
-  }
   int magic;
   int size;
   fread(&magic, 4, 1, f);
@@ -44,10 +40,7 @@ char* reco::details::readGzipFile(const std::string& weightFile)
     const char * error_string;
     error_string = gzerror (file, & err);
     if (err) {
-      free(buffer);
-      throw cms::Exception("InvalidFileState")
-        << "Error while reading gzipped file = " << weightFile << " !!\n"
-	<< error_string;
+      cout<<"Error while reading gzipped file:  "<<error_string;
     }
   }
   gzclose (file);
@@ -97,7 +90,7 @@ void reco::details::loadTMVAWeights(TMVA::Reader* reader, const std::string& met
     if (verbose) {
       std::cout << "Reader booked" << std::endl;
     }
-    free(c);
+    delete c;
   } else {
     throw cms::Exception("BadTMVAWeightFilename")
       << "I don't understand the extension on the filename: "
