@@ -66,6 +66,8 @@ class PFRecoTauChargedHadronFromTrackPlugin : public PFRecoTauChargedHadronBuild
   double dRmergePhoton_;
 
   math::XYZVector magneticFieldStrength_;
+
+  int verbosity_;
 };
 
 PFRecoTauChargedHadronFromTrackPlugin::PFRecoTauChargedHadronFromTrackPlugin(const edm::ParameterSet& pset)
@@ -81,6 +83,9 @@ PFRecoTauChargedHadronFromTrackPlugin::PFRecoTauChargedHadronFromTrackPlugin(con
 
   dRmergeNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadron");
   dRmergePhoton_ = pset.getParameter<double>("dRmergePhoton");
+
+  verbosity_ = ( pset.exists("verbosity") ) ?
+    pset.getParameter<int>("verbosity") : 0;
 }
   
 PFRecoTauChargedHadronFromTrackPlugin::~PFRecoTauChargedHadronFromTrackPlugin()
@@ -114,6 +119,11 @@ namespace
 
 PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTrackPlugin::operator()(const reco::PFJet& jet) const 
 {
+  //if ( verbosity_ ) {
+  //  std::cout << "<PFRecoTauChargedHadronFromTrackPlugin::operator()>:" << std::endl;
+  //  std::cout << " pluginName = " << name() << std::endl;
+  //}
+
   ChargedHadronVector output;
 
   const edm::Event& evt = (*this->evt());
@@ -208,6 +218,10 @@ PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTra
 	break;
       }
     }
+
+    //if ( verbosity_ ) {
+    //  chargedHadron->print(std::cout);
+    //}
 
     output.push_back(chargedHadron);
   }

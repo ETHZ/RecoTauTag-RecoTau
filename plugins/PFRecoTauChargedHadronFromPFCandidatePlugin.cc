@@ -52,6 +52,8 @@ class PFRecoTauChargedHadronFromPFCandidatePlugin : public PFRecoTauChargedHadro
 
   double dRmergeNeutralHadron_;
   double dRmergePhoton_;
+
+  int verbosity_;
 };
 
 PFRecoTauChargedHadronFromPFCandidatePlugin::PFRecoTauChargedHadronFromPFCandidatePlugin(const edm::ParameterSet& pset)
@@ -66,6 +68,9 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::PFRecoTauChargedHadronFromPFCandida
 
   dRmergeNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadron");
   dRmergePhoton_ = pset.getParameter<double>("dRmergePhoton");
+
+  verbosity_ = ( pset.exists("verbosity") ) ?
+    pset.getParameter<int>("verbosity") : 0;
 }
   
 PFRecoTauChargedHadronFromPFCandidatePlugin::~PFRecoTauChargedHadronFromPFCandidatePlugin()
@@ -79,8 +84,29 @@ void PFRecoTauChargedHadronFromPFCandidatePlugin::beginEvent()
   vertexAssociator_.setEvent(*evt());
 }
 
+namespace
+{
+  std::string getPFCandidateType(reco::PFCandidate::ParticleType pfCandidateType)
+  {
+    if      ( pfCandidateType == reco::PFCandidate::X         ) return "undefined";
+    else if ( pfCandidateType == reco::PFCandidate::h         ) return "PFChargedHadron";
+    else if ( pfCandidateType == reco::PFCandidate::e         ) return "PFElectron";
+    else if ( pfCandidateType == reco::PFCandidate::mu        ) return "PFMuon";
+    else if ( pfCandidateType == reco::PFCandidate::gamma     ) return "PFGamma";
+    else if ( pfCandidateType == reco::PFCandidate::h0        ) return "PFNeutralHadron";
+    else if ( pfCandidateType == reco::PFCandidate::h_HF      ) return "HF_had";
+    else if ( pfCandidateType == reco::PFCandidate::egamma_HF ) return "HF_em";
+    else assert(0);
+  }
+}
+
 PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronFromPFCandidatePlugin::operator()(const reco::PFJet& jet) const 
 {
+  //if ( verbosity_ ) {
+  //  std::cout << "<PFRecoTauChargedHadronFromPFCandidatePlugin::operator()>:" << std::endl;
+  //  std::cout << " pluginName = " << name() << std::endl;
+  //}
+
   ChargedHadronVector output;
 
   // Get the candidates passing our quality cuts
@@ -89,6 +115,11 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
 
   for ( PFCandPtrs::iterator cand = candsVector.begin();
 	cand != candsVector.end(); ++cand ) {
+    //if ( verbosity_ ) {
+    //  std::cout << "processing PFCandidate: Pt = " << (*cand)->pt() << ", eta = " << (*cand)->eta() << ", phi = " << (*cand)->phi() 
+    //	  	  << " (type = " << getPFCandidateType((*cand)->particleId()) << ")" << std::endl;
+    //}
+    
     PFRecoTauChargedHadron::PFRecoTauChargedHadronAlgorithm algo = PFRecoTauChargedHadron::kUndefined;
     if ( fabs((*cand)->charge()) > 0.5 ) algo = PFRecoTauChargedHadron::kChargedPFCandidate;
     else algo = PFRecoTauChargedHadron::kPFNeutralHadron;
@@ -114,6 +145,10 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
       else if ( jetConstituentType == reco::PFCandidate::gamma ) dRmerge = dRmergePhoton_;
       if ( dR < dRmerge ) chargedHadron->neutralPFCandidates_.push_back(*jetConstituent);
     }
+
+    //if ( verbosity_ ) {
+    //  chargedHadron->print(std::cout);
+    //}
 
     output.push_back(chargedHadron);
   }
