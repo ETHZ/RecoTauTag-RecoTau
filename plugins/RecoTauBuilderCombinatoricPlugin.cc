@@ -70,7 +70,7 @@ RecoTauBuilderCombinatoricPlugin::operator()(
     const std::vector<RecoTauPiZero>& piZeros,
     const std::vector<PFCandidatePtr>& regionalExtras) const 
 {
-  std::cout << "<RecoTauBuilderCombinatoricPlugin::operator()>:" << std::endl;
+  //std::cout << "<RecoTauBuilderCombinatoricPlugin::operator()>:" << std::endl;
 
   typedef std::vector<PFCandidatePtr> PFCandPtrs;
   typedef std::vector<RecoTauPiZero> PiZeroList;
@@ -92,20 +92,20 @@ RecoTauBuilderCombinatoricPlugin::operator()(
     // are very loose.
     pfchs = qcuts_.filterCandRefs(pfChargedCands(*jet));
   }
-  std::cout << "#pfchs = " << pfchs.size() << std::endl;
-  int idx = 0;
-  for ( PFCandPtrs::const_iterator pfch = pfchs.begin();
-  	  pfch != pfchs.end(); ++pfch ) {
-    std::cout << "pfch #" << idx << ": Pt = " << (*pfch)->pt() << ", eta = " << (*pfch)->eta() << ", phi = " << (*pfch)->phi() << std::endl;
-    ++idx;
-  }
-  std::cout << "#piZeros = " << piZeros.size() << std::endl;
-  idx = 0;
-  for ( std::vector<RecoTauPiZero>::const_iterator piZero = piZeros.begin();
-  	  piZero != piZeros.end(); ++piZero ) {
-    std::cout << "piZero #" << idx << ": Pt = " << piZero->pt() << ", eta = " << piZero->eta() << ", phi = " << piZero->phi() << std::endl;
-    ++idx;
-  }
+  //std::cout << "#pfchs = " << pfchs.size() << std::endl;
+  //int idx = 0;
+  //for ( PFCandPtrs::const_iterator pfch = pfchs.begin();
+  //	  pfch != pfchs.end(); ++pfch ) {
+  //  std::cout << "pfch #" << idx << ": Pt = " << (*pfch)->pt() << ", eta = " << (*pfch)->eta() << ", phi = " << (*pfch)->phi() << std::endl;
+  //  ++idx;
+  //}
+  //std::cout << "#piZeros = " << piZeros.size() << std::endl;
+  //idx = 0;
+  //for ( std::vector<RecoTauPiZero>::const_iterator piZero = piZeros.begin();
+  // 	  piZero != piZeros.end(); ++piZero ) {
+  //  std::cout << "piZero #" << idx << ": Pt = " << piZero->pt() << ", eta = " << piZero->eta() << ", phi = " << piZero->phi() << std::endl;
+  //  ++idx;
+  //}
 
   PFCandPtrs pfnhs = qcuts_.filterCandRefs(
       pfCandidates(*jet, reco::PFCandidate::h0));
@@ -120,10 +120,10 @@ RecoTauBuilderCombinatoricPlugin::operator()(
        decayMode != decayModesToBuild_.end(); ++decayMode) {
     // Find how many piZeros are in this decay mode
     size_t piZerosToBuild = decayMode->nPiZeros_;
-    std::cout << "piZerosToBuild = " << piZerosToBuild << std::endl;
+    //std::cout << "piZerosToBuild = " << piZerosToBuild << std::endl;
     // Find how many tracks are in this decay mode
     size_t tracksToBuild = decayMode->nCharged_;
-    std::cout << "tracksToBuild = " << tracksToBuild << std::endl;
+    //std::cout << "tracksToBuild = " << tracksToBuild << std::endl;
 
     // Skip decay mode if jet doesn't have the multiplicity to support it
     if (pfchs.size() < tracksToBuild)
