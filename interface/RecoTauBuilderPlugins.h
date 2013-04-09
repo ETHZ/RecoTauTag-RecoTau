@@ -84,7 +84,7 @@ class RecoTauBuilderPlugin : public RecoTauEventHolderPlugin {
     // Hook called by base class at the beginning of each event. Used to update
     // handle to PFCandidates
     virtual void beginEvent();
-
+    
   private:
     edm::InputTag pfCandSrc_;
     // Handle to PFCandidates needed to build Refs
@@ -102,6 +102,7 @@ class RecoTauModifierPlugin : public RecoTauEventHolderPlugin {
     // Modify an existing PFTau (i.e. add electron rejection, etc)
     virtual void operator()(PFTau&) const = 0;
     virtual void beginEvent() {}
+    virtual void endEvent() {}
 };
 
 /* Class that returns a double value indicating the quality of a given tau */

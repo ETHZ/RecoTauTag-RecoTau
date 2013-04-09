@@ -229,6 +229,12 @@ void RecoTauProducer::produce(edm::Event& evt, const edm::EventSetup& es) {
       (*modifier)(*tau);
     }
   }
+
+  for (ModifierList::iterator modifier = modifiers_.begin();
+        modifier != modifiers_.end(); ++modifier) {
+    modifier->endEvent();
+  }
+
   evt.put(output);
 }
 

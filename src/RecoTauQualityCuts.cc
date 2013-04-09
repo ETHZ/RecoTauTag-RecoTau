@@ -131,6 +131,10 @@ bool minTrackVertexWeight(const TrackBaseRef& track, const reco::VertexRef* pv, 
       "RecoTauQualityCuts is invalid. - minTrackVertexWeight";
     return false;
   }
+  //std::cout << "<trkLongitudinalImpactParameter>:" << std::endl;
+  //std::cout << " track: Pt = " << track->pt() << ", eta = " << track->eta() << ", phi = " << track->phi() << std::endl;
+  //std::cout << " vertex: x = " << (*pv)->position().x() << ", y = " << (*pv)->position().y() << ", z = " << (*pv)->position().z() << std::endl;
+  //std::cout << "--> trackWeight = " << (*pv)->trackWeight(track) << " (cut = " << cut << ")" << std::endl;
   return ((*pv)->trackWeight(track) >= cut);
 }
 
