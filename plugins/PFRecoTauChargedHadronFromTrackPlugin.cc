@@ -199,6 +199,7 @@ PFRecoTauChargedHadronFromTrackPlugin::return_type PFRecoTauChargedHadronFromTra
 	jetConstituent_withDistance.pfCandidate_ = (*jetConstituent);
 	jetConstituent_withDistance.distance_ = dR;
 	neutralJetConstituents_withDistance.push_back(jetConstituent_withDistance);
+	chargedHadron->addDaughter(*jetConstituent);
       }
     }
     std::sort(neutralJetConstituents_withDistance.begin(), neutralJetConstituents_withDistance.end(), isSmallerDistance);

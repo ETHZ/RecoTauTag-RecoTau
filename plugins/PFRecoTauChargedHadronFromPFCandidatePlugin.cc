@@ -125,7 +125,7 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
     else algo = PFRecoTauChargedHadron::kPFNeutralHadron;
 
     std::auto_ptr<PFRecoTauChargedHadron> chargedHadron(new PFRecoTauChargedHadron(**cand, algo));
-
+    chargedHadron->addDaughter(*cand);
     chargedHadron->chargedPFCandidate_ = (*cand);
 
     chargedHadron->positionAtECALEntrance_ = (*cand)->positionAtECALEntrance();
@@ -143,13 +143,14 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
       double dRmerge = -1.;      
       if      ( jetConstituentType == reco::PFCandidate::h0    ) dRmerge = dRmergeNeutralHadron_;
       else if ( jetConstituentType == reco::PFCandidate::gamma ) dRmerge = dRmergePhoton_;
-      if ( dR < dRmerge ) chargedHadron->neutralPFCandidates_.push_back(*jetConstituent);
+      if ( dR < dRmerge ){ chargedHadron->neutralPFCandidates_.push_back(*jetConstituent); chargedHadron->addDaughter(*jetConstituent);}
     }
 
     //if ( verbosity_ ) {
     //  chargedHadron->print(std::cout);
     //}
-
+    // Update the vertex
+    if ( chargedHadron->daughterPtr(0).isNonnull() ) chargedHadron->setVertex(chargedHadron->daughterPtr(0)->vertex());
     output.push_back(chargedHadron);
   }
 
