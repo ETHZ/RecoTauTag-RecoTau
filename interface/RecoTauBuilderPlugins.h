@@ -34,6 +34,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/EDProducer.h"
 
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
@@ -101,6 +102,7 @@ class RecoTauModifierPlugin : public RecoTauEventHolderPlugin {
     virtual ~RecoTauModifierPlugin() {}
     // Modify an existing PFTau (i.e. add electron rejection, etc)
     virtual void operator()(PFTau&) const = 0;
+    virtual void beginJob(edm::EDProducer*) {}
     virtual void beginEvent() {}
     virtual void endEvent() {}
 };
