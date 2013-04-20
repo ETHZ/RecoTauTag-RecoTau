@@ -23,6 +23,7 @@
 #include "RecoTauTag/RecoTau/interface/PFRecoTauChargedHadronPlugins.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauCleaningTools.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauCommonUtilities.h"
+#include "RecoTauTag/RecoTau/interface/pfRecoTauChargedHadronAuxFunctions.h"
 
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
 #include "DataFormats/TauReco/interface/PFJetChargedHadronAssociation.h"
@@ -128,43 +129,6 @@ PFRecoTauChargedHadronProducer::PFRecoTauChargedHadronProducer(const edm::Parame
   produces<reco::PFJetChargedHadronAssociation>();
 }
 
-namespace
-{
-  void updateChargedHadronP4(reco::PFRecoTauChargedHadron& chargedHadron)
-  {
-    double chargedHadronPx = 0.;
-    double chargedHadronPy = 0.;
-    double chargedHadronPz = 0.;
-    if ( chargedHadron.algoIs(reco::PFRecoTauChargedHadron::kChargedPFCandidate) ||
-	 chargedHadron.algoIs(reco::PFRecoTauChargedHadron::kPFNeutralHadron)   ) {
-      const reco::PFCandidatePtr& chargedPFCand = chargedHadron.getChargedPFCandidate();
-      assert(chargedPFCand.isNonnull());
-      chargedHadronPx += chargedPFCand->px();
-      chargedHadronPy += chargedPFCand->py();
-      chargedHadronPz += chargedPFCand->pz();
-      const std::vector<reco::PFCandidatePtr>& neutralPFCands = chargedHadron.getNeutralPFCandidates();
-      for ( std::vector<reco::PFCandidatePtr>::const_iterator neutralPFCand = neutralPFCands.begin();
-	    neutralPFCand != neutralPFCands.end(); ++neutralPFCand ) {
-	chargedHadronPx += (*neutralPFCand)->px();
-	chargedHadronPy += (*neutralPFCand)->py();
-	chargedHadronPz += (*neutralPFCand)->pz();
-      }
-    } else if ( chargedHadron.algoIs(reco::PFRecoTauChargedHadron::kTrack) ) {
-      const reco::PFRecoTauChargedHadron::TrackPtr& track = chargedHadron.getTrack();
-      assert(track.isNonnull());
-      chargedHadronPx += track->px();
-      chargedHadronPy += track->py();
-      chargedHadronPz += track->pz();
-    } else assert(0);
-
-    const double chargedPionMass = 0.13957; // GeV
-    double chargedHadronEn = sqrt(chargedHadronPx*chargedHadronPx + chargedHadronPy*chargedHadronPy + chargedHadronPz*chargedHadronPz + chargedPionMass*chargedPionMass);
-
-    reco::Candidate::LorentzVector chargedHadronP4(chargedHadronPx, chargedHadronPy, chargedHadronPz, chargedHadronEn);
-    chargedHadron.setP4(chargedHadronP4);
-  }
-}
-
 void PFRecoTauChargedHadronProducer::produce(edm::Event& evt, const edm::EventSetup& es) 
 {
   if ( verbosity_ ) {
@@ -203,10 +167,6 @@ void PFRecoTauChargedHadronProducer::produce(edm::Event& evt, const edm::EventSe
     BOOST_FOREACH( const Builder& builder, builders_ ) {
       try {
         ChargedHadronVector result(builder(*pfJet));
-	for ( ChargedHadronVector::iterator chargedHadron = result.begin();
-	      chargedHadron != result.end(); ++chargedHadron ) {
-	  updateChargedHadronP4(*chargedHadron);
-	}
 	if ( verbosity_ ) {
 	  std::cout << "result of builder = " << builder.name() << ":" << std::endl;
 	  print(result, std::cout);
@@ -301,7 +261,7 @@ void PFRecoTauChargedHadronProducer::produce(edm::Event& evt, const edm::EventSe
           nextChargedHadron->neutralPFCandidates_.push_back(neutralPFCand);
         }
 	// update ChargedHadron four-momentum
-	updateChargedHadronP4(*nextChargedHadron);
+	reco::tau::setChargedHadronP4(*nextChargedHadron);
 	// reinsert ChargedHadron candidate into list of uncleaned candidates,
 	// at position according to new rank
 	ChargedHadronList::iterator insertionPoint = std::lower_bound(uncleanedChargedHadrons.begin(), uncleanedChargedHadrons.end(), *nextChargedHadron, *predicate_);
