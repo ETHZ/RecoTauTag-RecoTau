@@ -100,16 +100,18 @@ RecoTauProducer::RecoTauProducer(const edm::ParameterSet& pset) {
     const std::string& pluginName =
         modfierPSet->getParameter<std::string>("name");
     // Build the plugin
+    reco::tau::RecoTauModifierPlugin* plugin = 0;
     try {
-      modifiers_.push_back(
-          RecoTauModifierPluginFactory::get()->create(
-            pluginType, *modfierPSet));
+      plugin = RecoTauModifierPluginFactory::get()->create(
+        pluginType, *modfierPSet);
     } catch (...) {
       edm::LogError("RecoTauModifierException")
         << "Exception when building a RecoTauModifier plugin of type: "
         << pluginType << " name: " << pluginName << std::endl;
       throw; // rethrow
     }
+    plugin->beginJob(this);
+    modifiers_.push_back(plugin);
   }
 
   // Check if we want to apply a final output selection
