@@ -158,7 +158,7 @@ PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau)
   // Check if tau passes cone cut
   double cone_size = signalConeFun_(*tau);
   // Check if any charged objects fail the signal cone cut
-  BOOST_FOREACH(const reco::PFCandidateRef& cand,
+  BOOST_FOREACH(const reco::PFCandidatePtr& cand,
                 tau->signalPFChargedHadrCands()) {
     //std::cout << "dR(tau, signalPFChargedHadr) = " << deltaR(cand->p4(), tauP4) << std::endl;
     if (deltaR(cand->p4(), tauP4) > cone_size)

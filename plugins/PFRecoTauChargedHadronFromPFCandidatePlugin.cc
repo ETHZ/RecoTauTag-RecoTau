@@ -11,8 +11,8 @@
 
 #include "RecoTauTag/RecoTau/interface/PFRecoTauChargedHadronPlugins.h"
 
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/TauReco/interface/PFRecoTauChargedHadron.h"
@@ -22,6 +22,7 @@
 #include "RecoTauTag/RecoTau/interface/RecoTauCommonUtilities.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauQualityCuts.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauVertexAssociator.h"
+#include "RecoTauTag/RecoTau/interface/pfRecoTauChargedHadronAuxFunctions.h"
 
 #include <memory>
 
@@ -51,7 +52,11 @@ class PFRecoTauChargedHadronFromPFCandidatePlugin : public PFRecoTauChargedHadro
   std::vector<int> inputPdgIds_;  // type of candidates to clusterize
 
   double dRmergeNeutralHadron_;
+  int minBlockElementMatchesNeutralHadron_;
+  int maxUnmatchedBlockElementsNeutralHadron_;
   double dRmergePhoton_;
+  int minBlockElementMatchesPhoton_;
+  int maxUnmatchedBlockElementsPhoton_;
 
   int verbosity_;
 };
@@ -67,7 +72,11 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::PFRecoTauChargedHadronFromPFCandida
   inputPdgIds_ = pset.getParameter<std::vector<int> >("chargedHadronCandidatesParticleIds");
 
   dRmergeNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadron");
+  minBlockElementMatchesNeutralHadron_ = pset.getParameter<int>("minBlockElementMatchesNeutralHadron");
+  maxUnmatchedBlockElementsNeutralHadron_ = pset.getParameter<int>("maxUnmatchedBlockElementsNeutralHadron");
   dRmergePhoton_ = pset.getParameter<double>("dRmergePhoton");
+  minBlockElementMatchesPhoton_ = pset.getParameter<int>("minBlockElementMatchesPhoton");
+  maxUnmatchedBlockElementsPhoton_ = pset.getParameter<int>("maxUnmatchedBlockElementsPhoton");
 
   verbosity_ = ( pset.exists("verbosity") ) ?
     pset.getParameter<int>("verbosity") : 0;
@@ -98,6 +107,36 @@ namespace
     else if ( pfCandidateType == reco::PFCandidate::egamma_HF ) return "HF_em";
     else assert(0);
   }
+
+  bool isMatchedByBlockElement(const reco::PFCandidate& pfCandidate1, const reco::PFCandidate& pfCandidate2, int minMatches1, int minMatches2, int maxUnmatchedBlockElements1plus2)
+  {
+    reco::PFCandidate::ElementsInBlocks blockElements1 = pfCandidate1.elementsInBlocks();
+    int numBlocks1 = blockElements1.size();
+    reco::PFCandidate::ElementsInBlocks blockElements2 = pfCandidate2.elementsInBlocks();
+    int numBlocks2 = blockElements2.size();
+    int numBlocks_matched = 0;
+    for ( reco::PFCandidate::ElementsInBlocks::const_iterator blockElement1 = blockElements1.begin();
+	  blockElement1 != blockElements1.end(); ++blockElement1 ) {
+      bool isMatched = false;
+      for ( reco::PFCandidate::ElementsInBlocks::const_iterator blockElement2 = blockElements2.begin();
+	    blockElement2 != blockElements2.end(); ++blockElement2 ) {
+	if ( blockElement1->first.id()  == blockElement2->first.id()  && 
+	     blockElement1->first.key() == blockElement2->first.key() && 
+	     blockElement1->second      == blockElement2->second      ) {
+	  isMatched = true;
+	}
+      }
+      if ( isMatched ) ++numBlocks_matched;
+    }
+    assert(numBlocks_matched <= numBlocks1);
+    assert(numBlocks_matched <= numBlocks2);
+    if ( numBlocks_matched >= minMatches1 && numBlocks_matched >= minMatches2 &&
+	 ((numBlocks1 - numBlocks_matched) + (numBlocks2 - numBlocks_matched)) <= maxUnmatchedBlockElements1plus2 ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 
 PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronFromPFCandidatePlugin::operator()(const reco::PFJet& jet) const 
@@ -125,8 +164,8 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
     else algo = PFRecoTauChargedHadron::kPFNeutralHadron;
 
     std::auto_ptr<PFRecoTauChargedHadron> chargedHadron(new PFRecoTauChargedHadron(**cand, algo));
-    chargedHadron->addDaughter(*cand);
     chargedHadron->chargedPFCandidate_ = (*cand);
+    chargedHadron->addDaughter(*cand);
 
     chargedHadron->positionAtECALEntrance_ = (*cand)->positionAtECALEntrance();
 
@@ -141,10 +180,25 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
 
       double dR = deltaR((*jetConstituent)->positionAtECALEntrance(), chargedHadron->positionAtECALEntrance_);
       double dRmerge = -1.;      
-      if      ( jetConstituentType == reco::PFCandidate::h0    ) dRmerge = dRmergeNeutralHadron_;
-      else if ( jetConstituentType == reco::PFCandidate::gamma ) dRmerge = dRmergePhoton_;
-      if ( dR < dRmerge ){ chargedHadron->neutralPFCandidates_.push_back(*jetConstituent); chargedHadron->addDaughter(*jetConstituent);}
+      int minBlockElementMatches = 1000;
+      int maxUnmatchedBlockElements = 0;
+      if ( jetConstituentType == reco::PFCandidate::h0    ) {
+	dRmerge = dRmergeNeutralHadron_;
+	minBlockElementMatches = minBlockElementMatchesNeutralHadron_;
+	maxUnmatchedBlockElements = maxUnmatchedBlockElementsNeutralHadron_;
+      } else if ( jetConstituentType == reco::PFCandidate::gamma ) {
+	dRmerge = dRmergePhoton_;
+	minBlockElementMatches = minBlockElementMatchesPhoton_;
+	maxUnmatchedBlockElements = maxUnmatchedBlockElementsPhoton_;
+      }
+      if ( dR < dRmerge || 
+	   isMatchedByBlockElement(**jetConstituent, *chargedHadron->chargedPFCandidate_, minBlockElementMatches, minBlockElementMatches, maxUnmatchedBlockElements) ) {
+	chargedHadron->neutralPFCandidates_.push_back(*jetConstituent);
+	chargedHadron->addDaughter(*jetConstituent);
+      }
     }
+
+    setChargedHadronP4(*chargedHadron);
 
     //if ( verbosity_ ) {
     //  chargedHadron->print(std::cout);

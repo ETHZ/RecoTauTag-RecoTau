@@ -689,7 +689,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau,
   float sumEtaTimesEnergy = 0;
   float sumEnergy = 0;
   for(unsigned int j = 0 ; j < (thePFTau.signalPFCands()).size() ; j++){
-    reco::PFCandidateRef pfcandidate = (thePFTau.signalPFCands()).at(j);
+    const reco::PFCandidatePtr& pfcandidate = (thePFTau.signalPFCands()).at(j);
     sumEtaTimesEnergy += pfcandidate->positionAtECALEntrance().eta()*pfcandidate->energy();
     sumEnergy += pfcandidate->energy();
   }
@@ -710,7 +710,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau,
   std::vector<Float_t> GammasdPhi;
   std::vector<Float_t> GammasPt;
   for ( unsigned i = 0 ; i < thePFTau.signalPFGammaCands().size(); ++i ) {
-    reco::PFCandidateRef gamma = thePFTau.signalPFGammaCands().at(i);
+    const reco::PFCandidatePtr& gamma = thePFTau.signalPFGammaCands().at(i);
     if ( thePFTau.leadPFChargedHadrCand().isNonnull() ) {
       GammasdEta.push_back(gamma->eta() - thePFTau.leadPFChargedHadrCand()->eta());
       GammasdPhi.push_back(gamma->phi() - thePFTau.leadPFChargedHadrCand()->phi());
@@ -742,7 +742,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau,
   float sumPhiTimesEnergy = 0;
   float sumEnergyPhi = 0;
   for(unsigned int j = 0 ; j < (thePFTau.signalPFCands()).size() ; j++){
-    reco::PFCandidateRef pfcandidate = (thePFTau.signalPFCands()).at(j);
+    const reco::PFCandidatePtr& pfcandidate = (thePFTau.signalPFCands()).at(j);
     sumPhiTimesEnergy += pfcandidate->positionAtECALEntrance().phi()*pfcandidate->energy();
     sumEnergyPhi += pfcandidate->energy();
   }
@@ -829,7 +829,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau)
   float sumEtaTimesEnergy = 0;
   float sumEnergy = 0;
   for(unsigned int j = 0 ; j < (thePFTau.signalPFCands()).size() ; j++){
-    reco::PFCandidateRef pfcandidate = (thePFTau.signalPFCands()).at(j);
+    const reco::PFCandidatePtr& pfcandidate = (thePFTau.signalPFCands()).at(j);
     sumEtaTimesEnergy += pfcandidate->positionAtECALEntrance().eta()*pfcandidate->energy();
     sumEnergy += pfcandidate->energy();
   }
@@ -850,7 +850,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau)
   std::vector<Float_t> GammasdPhi;
   std::vector<Float_t> GammasPt;
   for ( unsigned i = 0 ; i < thePFTau.signalPFGammaCands().size(); ++i ) {
-    reco::PFCandidateRef gamma = thePFTau.signalPFGammaCands().at(i);
+    const reco::PFCandidatePtr& gamma = thePFTau.signalPFGammaCands().at(i);
     if ( thePFTau.leadPFChargedHadrCand().isNonnull() ) {
       GammasdEta.push_back(gamma->eta() - thePFTau.leadPFChargedHadrCand()->eta());
       GammasdPhi.push_back(gamma->phi() - thePFTau.leadPFChargedHadrCand()->phi());
@@ -882,7 +882,7 @@ double AntiElectronIDMVA3::MVAValue(const reco::PFTau& thePFTau)
   float sumPhiTimesEnergy = 0;
   float sumEnergyPhi = 0;
   for(unsigned int j = 0 ; j < (thePFTau.signalPFCands()).size() ; j++){
-    reco::PFCandidateRef pfcandidate = (thePFTau.signalPFCands()).at(j);
+    const reco::PFCandidatePtr& pfcandidate = (thePFTau.signalPFCands()).at(j);
     sumPhiTimesEnergy += pfcandidate->positionAtECALEntrance().phi()*pfcandidate->energy();
     sumEnergyPhi += pfcandidate->energy();
   }

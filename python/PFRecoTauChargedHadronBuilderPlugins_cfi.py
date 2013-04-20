@@ -21,8 +21,10 @@ chargedPFCandidates = cms.PSet(
     qualityCuts = PFTauQualityCuts,
     dRmergeNeutralHadron = cms.double(0.005),
     minBlockElementMatchesNeutralHadron = cms.int32(2),
+    maxUnmatchedBlockElementsNeutralHadron = cms.int32(1),
     dRmergePhoton = cms.double(0.005),
     minBlockElementMatchesPhoton = cms.int32(2),
+    maxUnmatchedBlockElementsPhoton = cms.int32(1)
 )
 
 # Produce a ChargedHadron candidate for each reco::Track
@@ -47,6 +49,8 @@ PFNeutralHadrons = cms.PSet(
     qualityCuts = PFTauQualityCuts,
     dRmergeNeutralHadron = cms.double(0.01),
     minBlockElementMatchesNeutralHadron = cms.int32(2),
+    maxUnmatchedBlockElementsNeutralHadron = cms.int32(1),
     dRmergePhoton = cms.double(0.01),
     minBlockElementMatchesPhoton = cms.int32(2),
+    maxUnmatchedBlockElementsPhoton = cms.int32(1)
 )

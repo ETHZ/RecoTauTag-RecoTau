@@ -14,6 +14,7 @@
 #include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Candidate/interface/ShallowCloneCandidate.h"
+#include "DataFormats/Candidate/interface/ShallowClonePtrCandidate.h"
 #include "RecoTauTag/TauTagTools/interface/TauTagTools.h"
 
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -262,13 +263,13 @@ void PFRecoTauDecayModeDeterminator::produce(edm::Event& iEvent,const edm::Event
      PFTau              myPFTau = *pfTauRef;
      
      //get the charged & neutral collections corresponding to this PFTau
-     const PFCandidateRefVector& theChargedHadronCandidates = myPFTau.signalPFChargedHadrCands();
-     const PFCandidateRefVector& theGammaCandidates         = myPFTau.signalPFGammaCands();
+     const std::vector<PFCandidatePtr>& theChargedHadronCandidates = myPFTau.signalPFChargedHadrCands();
+     const std::vector<PFCandidatePtr>& theGammaCandidates         = myPFTau.signalPFGammaCands();
 
      LorentzVector totalFourVector;                       //contains non-filtered stuff only.
 
      //shallow clone everything
-     std::vector<ShallowCloneCandidate>    chargedCandidates;
+     std::vector<ShallowClonePtrCandidate>    chargedCandidates;
      std::list<CompositeCandidate>         gammaCandidates;
      VertexCompositeCandidate         chargedCandsToAdd;  
      CompositeCandidate               filteredStuff;      //empty for now.
@@ -284,24 +285,24 @@ void PFRecoTauDecayModeDeterminator::produce(edm::Event& iEvent,const edm::Event
         if (lowPt/highPt < minPtFractionForSecondProng_)  //if it is super low, filter it!
         {
            needToProcessTracks = false;  //we are doing it here instead
-           chargedCandsToAdd.addDaughter(ShallowCloneCandidate(CandidateBaseRef(theChargedHadronCandidates[indexOfHighestPt])));
+           chargedCandsToAdd.addDaughter(ShallowClonePtrCandidate(theChargedHadronCandidates[indexOfHighestPt]));
            Candidate* justAdded = chargedCandsToAdd.daughter(chargedCandsToAdd.numberOfDaughters()-1);
            totalFourVector += justAdded->p4();
            if(setChargedPionMass_)
               justAdded->setMass(chargedPionMass);
            //add the two prong to the list of filtered stuff (to be added to the isolation collection later)
-           filteredStuff.addDaughter(ShallowCloneCandidate(CandidateBaseRef(theChargedHadronCandidates[indexOfLowerPt])));
+           filteredStuff.addDaughter(ShallowClonePtrCandidate(theChargedHadronCandidates[indexOfLowerPt]));
         }
      }
 
      if(needToProcessTracks) //not a two prong, filter is turned off, or 2nd prong passes cuts
      {
-        for( PFCandidateRefVector::const_iterator iCharged  = theChargedHadronCandidates.begin();
+       for( std::vector<PFCandidatePtr>::const_iterator iCharged  = theChargedHadronCandidates.begin();
               iCharged != theChargedHadronCandidates.end();
               ++iCharged)
         {
            // copy as shallow clone, and asssume mass of pi+
-           chargedCandsToAdd.addDaughter(ShallowCloneCandidate(CandidateBaseRef(*iCharged)));
+           chargedCandsToAdd.addDaughter(ShallowClonePtrCandidate(*iCharged));
            Candidate* justAdded = chargedCandsToAdd.daughter(chargedCandsToAdd.numberOfDaughters()-1);
            totalFourVector += justAdded->p4();
            if(setChargedPionMass_)
@@ -309,12 +310,12 @@ void PFRecoTauDecayModeDeterminator::produce(edm::Event& iEvent,const edm::Event
         }
      }
 
-     for( PFCandidateRefVector::const_iterator iGamma  = theGammaCandidates.begin();
+     for( std::vector<PFCandidatePtr>::const_iterator iGamma  = theGammaCandidates.begin();
                                                iGamma != theGammaCandidates.end();
                                              ++iGamma)
      {
         CompositeCandidate potentialPiZero;
-        potentialPiZero.addDaughter(ShallowCloneCandidate(CandidateBaseRef(*iGamma)));
+        potentialPiZero.addDaughter(ShallowClonePtrCandidate(*iGamma));
         addP4.set(potentialPiZero);
         totalFourVector += potentialPiZero.p4();
         gammaCandidates.push_back(potentialPiZero);
@@ -352,7 +353,7 @@ void PFRecoTauDecayModeDeterminator::produce(edm::Event& iEvent,const edm::Event
               totalFourVector -= wimp->p4();
               for(size_t iDaughter = 0; iDaughter < numberOfPhotons; ++iDaughter)
               {
-                 filteredStuff.addDaughter(ShallowCloneCandidate(CandidateBaseRef( wimp->daughter(iDaughter)->masterClone() )));
+                 filteredStuff.addDaughter(ShallowCloneCandidate(wimp->daughter(iDaughter)->masterClone()));
               }
 
               //move to the next photon to filter

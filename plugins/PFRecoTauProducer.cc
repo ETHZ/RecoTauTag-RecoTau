@@ -21,7 +21,6 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 #include "RecoTauTag/RecoTau/interface/PFRecoTauAlgorithm.h"
-#include "RecoTauTag/RecoTau/interface/HPSPFRecoTauAlgorithm.h"
 
 #include "CLHEP/Random/RandGauss.h"
 
@@ -61,17 +60,11 @@ PFRecoTauProducer::PFRecoTauProducer(const edm::ParameterSet& iConfig){
 
   if(Algorithm_ =="ConeBased") {
     PFRecoTauAlgo_=new PFRecoTauAlgorithm(iConfig);
-  }
-  else if(Algorithm_ =="HPS") {
-    PFRecoTauAlgo_=new HPSPFRecoTauAlgorithm(iConfig);
-  }
-  else {    //Add inside out Algorithm here
-
+  } else {   
     //If no Algorithm found throw exception
-    throw cms::Exception("") << "Unknown Algorithkm" << std::endl;
+    throw cms::Exception("") << "Unknown Algorithm" << std::endl;
   }
-    
-
+  
   produces<PFTauCollection>();      
 }
 PFRecoTauProducer::~PFRecoTauProducer(){

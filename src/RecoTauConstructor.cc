@@ -1,11 +1,10 @@
 #include "RecoTauTag/RecoTau/interface/RecoTauConstructor.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauCommonUtilities.h"
+#include "DataFormats/Common/interface/RefToPtr.h"
 #include <boost/foreach.hpp>
 #include <boost/bind.hpp>
 
 namespace reco { namespace tau {
-
-
 
 RecoTauConstructor::RecoTauConstructor(const PFJetRef& jet,
     const edm::Handle<PFCandidateCollection>& pfCands,
@@ -36,7 +35,7 @@ RecoTauConstructor::RecoTauConstructor(const PFJetRef& jet,
 
   // Build our temporary sorted collections, since you can't use stl sorts on
   // RefVectors
-  BOOST_FOREACH(const CollectionMap::value_type &colkey, collections_) {
+  BOOST_FOREACH(const CollectionMap::value_type& colkey, collections_) {
     // Build an empty list for each collection
     sortedCollections_[colkey.first] = SortedListPtr(
         new SortedListPtr::element_type);
@@ -45,17 +44,28 @@ RecoTauConstructor::RecoTauConstructor(const PFJetRef& jet,
   tau_->setjetRef(jet);
 }
 
-void RecoTauConstructor::addPFCand(Region region, ParticleType type,
-    const PFCandidateRef& ref) {
-  if (region == kSignal) {
+void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidateRef& ref) {
+  if ( region == kSignal ) {
     // Keep track of the four vector of the signal vector products added so far.
     // If a photon add it if we are not using PiZeros to build the gammas
     if ( (type != kGamma) || !copyGammas_ )
       p4_ += ref->p4();
   }
-  getSortedCollection(region, type)->push_back(ref);
+  getSortedCollection(region, type)->push_back(edm::refToPtr<PFCandidateCollection>(ref));
   // Add to global collection
-  getSortedCollection(region, kAll)->push_back(ref);
+  getSortedCollection(region, kAll)->push_back(edm::refToPtr<PFCandidateCollection>(ref));
+}
+
+void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidatePtr& ptr) {
+  if ( region == kSignal ) {
+    // Keep track of the four vector of the signal vector products added so far.
+    // If a photon add it if we are not using PiZeros to build the gammas
+    if ( (type != kGamma) || !copyGammas_ )
+      p4_ += ptr->p4();
+  }
+  getSortedCollection(region, type)->push_back(ptr);
+  // Add to global collection
+  getSortedCollection(region, kAll)->push_back(ptr);
 }
 
 void RecoTauConstructor::reserve(Region region, ParticleType type, size_t size){
@@ -66,6 +76,45 @@ void RecoTauConstructor::reserve(Region region, ParticleType type, size_t size){
       getSortedCollection(region, kAll)->size() + size);
   getCollection(region, kAll)->reserve(
       getCollection(region, kAll)->size() + size);
+}
+
+void RecoTauConstructor::reserveTauChargedHadron(Region region, size_t size) 
+{
+  if ( region == kSignal ) {
+    tau_->signalTauChargedHadronCandidates_.reserve(size);
+    tau_->selectedSignalPFChargedHadrCands_.reserve(size);
+  } else {
+    tau_->isolationTauChargedHadronCandidates_.reserve(size);
+    tau_->selectedIsolationPFChargedHadrCands_.reserve(size);
+  }
+}
+
+void RecoTauConstructor::addTauChargedHadron(Region region, const PFRecoTauChargedHadron& chargedHadron) 
+{
+  if ( region == kSignal ) {
+    tau_->signalTauChargedHadronCandidates_.push_back(chargedHadron);
+    if ( chargedHadron.getChargedPFCandidate().isNonnull() ) {
+      addPFCand(kSignal, kChargedHadron, chargedHadron.getChargedPFCandidate());
+    }
+    const std::vector<PFCandidatePtr>& neutrals = chargedHadron.getNeutralPFCandidates();
+    for ( std::vector<PFCandidatePtr>::const_iterator neutral = neutrals.begin();
+	  neutral != neutrals.end(); ++neutral ) {
+      if      ( (*neutral)->particleId() == reco::PFCandidate::gamma ) addPFCand(kSignal, kGamma, *neutral);
+      else if ( (*neutral)->particleId() == reco::PFCandidate::h0    ) addPFCand(kSignal, kNeutralHadron, *neutral);
+    };
+  } else {
+    tau_->isolationTauChargedHadronCandidates_.push_back(chargedHadron);
+    if ( chargedHadron.getChargedPFCandidate().isNonnull() ) {
+      if      ( chargedHadron.getChargedPFCandidate()->particleId() == reco::PFCandidate::h  ) addPFCand(kIsolation, kChargedHadron, chargedHadron.getChargedPFCandidate());
+      else if ( chargedHadron.getChargedPFCandidate()->particleId() == reco::PFCandidate::h0 ) addPFCand(kIsolation, kNeutralHadron, chargedHadron.getChargedPFCandidate());
+    }
+    const std::vector<PFCandidatePtr>& neutrals = chargedHadron.getNeutralPFCandidates();
+    for ( std::vector<PFCandidatePtr>::const_iterator neutral = neutrals.begin();
+	  neutral != neutrals.end(); ++neutral ) {
+      if      ( (*neutral)->particleId() == reco::PFCandidate::gamma ) addPFCand(kIsolation, kGamma, *neutral);
+      else if ( (*neutral)->particleId() == reco::PFCandidate::h0    ) addPFCand(kIsolation, kNeutralHadron, *neutral);
+    };
+  }
 }
 
 void RecoTauConstructor::reservePiZero(Region region, size_t size) {
@@ -102,7 +151,7 @@ void RecoTauConstructor::addPiZero(Region region, const RecoTauPiZero& piZero) {
   }
 }
 
-PFCandidateRefVector*
+std::vector<PFCandidatePtr>*
 RecoTauConstructor::getCollection(Region region, ParticleType type) {
     return collections_[std::make_pair(region, type)];
 }
@@ -113,9 +162,9 @@ RecoTauConstructor::getSortedCollection(Region region, ParticleType type) {
 }
 
 // Trivial converter needed for polymorphism
-PFCandidateRef RecoTauConstructor::convertToRef(
-    const PFCandidateRef& pfRef) const {
-  return pfRef;
+PFCandidatePtr RecoTauConstructor::convertToPtr(
+    const PFCandidatePtr& pfPtr) const {
+  return pfPtr;
 }
 
 namespace {
@@ -131,29 +180,28 @@ void checkMatchedProductIds(const T1& t1, const T2& t2) {
 }
 }
 
-// Convert from a Ptr to a Ref
-PFCandidateRef RecoTauConstructor::convertToRef(
-    const PFCandidatePtr& pfPtr) const {
-  if(pfPtr.isNonnull()) {
-    checkMatchedProductIds(pfPtr, pfCands_);
-    return PFCandidateRef(pfCands_, pfPtr.key());
-  } else return PFCandidateRef();
+PFCandidatePtr RecoTauConstructor::convertToPtr(
+    const PFCandidateRef& pfRef) const {
+  if(pfRef.isNonnull()) {
+    checkMatchedProductIds(pfRef, pfCands_);
+    return PFCandidatePtr(pfCands_, pfRef.key());
+  } else return PFCandidatePtr();
 }
 
-// Convert from a CandidatePtr to a Ref
-PFCandidateRef RecoTauConstructor::convertToRef(
+// Convert from a CandidateRef to a Ptr
+PFCandidatePtr RecoTauConstructor::convertToPtr(
     const CandidatePtr& candPtr) const {
   if(candPtr.isNonnull()) {
     checkMatchedProductIds(candPtr, pfCands_);
-    return PFCandidateRef(pfCands_, candPtr.key());
-  } else return PFCandidateRef();
+    return PFCandidatePtr(pfCands_, candPtr.key());
+  } else return PFCandidatePtr();
 }
 
 namespace {
 template<typename T> bool ptDescending(const T& a, const T& b) {
   return a.pt() > b.pt();
 }
-template<typename T> bool ptDescendingRef(const T& a, const T& b) {
+template<typename T> bool ptDescendingPtr(const T& a, const T& b) {
   return a->pt() > b->pt();
 }
 }
@@ -169,15 +217,16 @@ void RecoTauConstructor::sortAndCopyIntoTau() {
 
   // Sort each of our sortable collections, and copy them into the final
   // tau RefVector.
-  BOOST_FOREACH(const CollectionMap::value_type &colkey, collections_) {
+  BOOST_FOREACH ( const CollectionMap::value_type& colkey, collections_ ) {
     SortedListPtr sortedCollection = sortedCollections_[colkey.first];
     std::sort(sortedCollection->begin(),
               sortedCollection->end(),
-              ptDescendingRef<PFCandidateRef>);
+              ptDescendingPtr<PFCandidatePtr>);
     // Copy into the real tau collection
-    std::for_each(
-        sortedCollection->begin(), sortedCollection->end(),
-        boost::bind(&PFCandidateRefVector::push_back, colkey.second, _1));
+    for ( std::vector<PFCandidatePtr>::const_iterator particle = sortedCollection->begin();
+	  particle != sortedCollection->end(); ++particle ) {
+      colkey.second->push_back(*particle);
+    }
   }
 }
 
@@ -225,7 +274,7 @@ std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects) {
 
   if(setupLeadingObjects)
   {
-    typedef PFCandidateRefVector::const_iterator Iter;
+    typedef std::vector<PFCandidatePtr>::const_iterator Iter;
     // Find the highest PT object in the signal cone
     Iter leadingCand = leadPFCand(
         getCollection(kSignal, kAll)->begin(),

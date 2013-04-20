@@ -67,7 +67,6 @@ _combinatoricTauConfig = cms.PSet(
     name = cms.string("combinatoric"),
     plugin = cms.string("RecoTauBuilderCombinatoricPlugin"),
     pfCandSrc = cms.InputTag("particleFlow"),
-    usePFLeptons = cms.bool(True),
     isolationConeSize = cms.double(0.5),
     qualityCuts = PFTauQualityCuts,
     decayModes = cms.VPSet(
@@ -79,8 +78,7 @@ _combinatoricTauConfig = cms.PSet(
     )
 )
 
-combinatoricRecoTaus = cms.EDProducer(
-    "RecoTauProducer",
+combinatoricRecoTaus = cms.EDProducer("RecoTauProducer",
     jetSrc = cms.InputTag("ak5PFJets"),
     jetRegionSrc = cms.InputTag("recoTauAK5PFJets08Region"),
     piZeroSrc = cms.InputTag("ak5PFJetsRecoTauPiZeros"),

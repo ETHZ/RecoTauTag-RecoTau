@@ -233,7 +233,7 @@ double PFRecoTauDiscriminationAgainstElectronMVA3::discriminate(const PFTauRef& 
 	    float sumEtaTimesEnergy = 0;
 	    float sumEnergy = 0;
 	    for(unsigned int j = 0 ; j < ((*thePFTauRef).signalPFCands()).size() ; j++){
-	      reco::PFCandidateRef pfcandidate = ((*thePFTauRef).signalPFCands()).at(j);
+	      const reco::PFCandidatePtr& pfcandidate = ((*thePFTauRef).signalPFCands()).at(j);
 	      sumEtaTimesEnergy += pfcandidate->positionAtECALEntrance().eta()*pfcandidate->energy();
 	      sumEnergy += pfcandidate->energy();
 	    }
@@ -306,7 +306,7 @@ double PFRecoTauDiscriminationAgainstElectronMVA3::discriminate(const PFTauRef& 
 	float sumEtaTimesEnergy = 0;
 	float sumEnergy = 0;
 	for(unsigned int j = 0 ; j < ((*thePFTauRef).signalPFCands()).size() ; j++){
-	  reco::PFCandidateRef pfcandidate = ((*thePFTauRef).signalPFCands()).at(j);
+	  const reco::PFCandidatePtr& pfcandidate = ((*thePFTauRef).signalPFCands()).at(j);
 	  sumEtaTimesEnergy += pfcandidate->positionAtECALEntrance().eta()*pfcandidate->energy();
 	  sumEnergy += pfcandidate->energy();
 	}

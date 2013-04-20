@@ -169,7 +169,7 @@ class PFRecoTauDiscriminationByIsolation :
     edm::InputTag pfCandSrc_;
     // Keep track of how many vertices are in the event
     edm::InputTag vertexSrc_;
-    std::vector<reco::PFCandidateRef> chargedPFCandidatesInEvent_;
+    std::vector<reco::PFCandidatePtr> chargedPFCandidatesInEvent_;
     // Size of cone used to collect PU tracks
     double deltaBetaCollectionCone_;
     std::auto_ptr<TFormula> deltaBetaFormula_;
@@ -202,7 +202,7 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
     event.getByLabel(pfCandSrc_, pfCandHandle_);
     chargedPFCandidatesInEvent_.reserve(pfCandHandle_->size());
     for (size_t i = 0; i < pfCandHandle_->size(); ++i) {
-      reco::PFCandidateRef pfCand(pfCandHandle_, i);
+      reco::PFCandidatePtr pfCand(pfCandHandle_, i);
       if (pfCand->charge() != 0)
         chargedPFCandidatesInEvent_.push_back(pfCand);
     }
@@ -225,9 +225,9 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
 double
 PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   // collect the objects we are working with (ie tracks, tracks+gammas, etc)
-  std::vector<PFCandidateRef> isoCharged;
-  std::vector<PFCandidateRef> isoNeutral;
-  std::vector<PFCandidateRef> isoPU;
+  std::vector<PFCandidatePtr> isoCharged;
+  std::vector<PFCandidatePtr> isoNeutral;
+  std::vector<PFCandidatePtr> isoPU;
 
   // Get the primary vertex associated to this tau
   reco::VertexRef pv = vertexAssociator_->associatedVertex(*pfTau);
@@ -243,7 +243,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   }
   // Load the tracks if they are being used.
   if (includeTracks_) {
-    BOOST_FOREACH(const reco::PFCandidateRef& cand,
+    BOOST_FOREACH(const reco::PFCandidatePtr& cand,
         pfTau->isolationPFChargedHadrCands()) {
       if (qcuts_->filterCandRef(cand))
         isoCharged.push_back(cand);
@@ -251,13 +251,13 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   }
 
   if (includeGammas_) {
-    BOOST_FOREACH(const reco::PFCandidateRef& cand,
+    BOOST_FOREACH(const reco::PFCandidatePtr& cand,
         pfTau->isolationPFGammaCands()) {
       if (qcuts_->filterCandRef(cand))
         isoNeutral.push_back(cand);
     }
   }
-  typedef reco::tau::cone::DeltaRPtrFilter<PFCandidateRef> DRFilter;
+  typedef reco::tau::cone::DeltaRPtrFilter<PFCandidatePtr> DRFilter;
 
   // If desired, get PU tracks.
   if (applyDeltaBeta_) {
@@ -265,21 +265,21 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     //std::cout << "Initial PFCands: " << chargedPFCandidatesInEvent_.size()
     //  << std::endl;
 
-    std::vector<PFCandidateRef> allPU =
+    std::vector<PFCandidatePtr> allPU =
       pileupQcutsPUTrackSelection_->filterCandRefs(
           chargedPFCandidatesInEvent_, true);
 
     //std::cout << "After track cuts: " << allPU.size() << std::endl;
 
     // Now apply the rest of the cuts, like pt, and TIP, tracker hits, etc
-    std::vector<PFCandidateRef> cleanPU =
+    std::vector<PFCandidatePtr> cleanPU =
       pileupQcutsGeneralQCuts_->filterCandRefs(allPU);
 
     //std::cout << "After cleaning cuts: " << cleanPU.size() << std::endl;
 
     // Only select PU tracks inside the isolation cone.
     DRFilter deltaBetaFilter(pfTau->p4(), 0, deltaBetaCollectionCone_);
-    BOOST_FOREACH(const reco::PFCandidateRef& cand, cleanPU) {
+    BOOST_FOREACH(const reco::PFCandidatePtr& cand, cleanPU) {
       if (deltaBetaFilter(cand)) {
         isoPU.push_back(cand);
       }
@@ -290,13 +290,13 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   // Check if we want a custom iso cone
   if (customIsoCone_ >= 0.) {
     DRFilter filter(pfTau->p4(), 0, customIsoCone_);
-    std::vector<PFCandidateRef> isoCharged_filter;
-    std::vector<PFCandidateRef> isoNeutral_filter;
+    std::vector<PFCandidatePtr> isoCharged_filter;
+    std::vector<PFCandidatePtr> isoNeutral_filter;
     // Remove all the objects not in our iso cone
-     BOOST_FOREACH(const PFCandidateRef& isoObject, isoCharged) {
+     BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
       if(filter(isoObject)) isoCharged_filter.push_back(isoObject);
     }
-    BOOST_FOREACH(const PFCandidateRef& isoObject, isoNeutral) {
+    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoNeutral) {
       if(filter(isoObject)) isoNeutral_filter.push_back(isoObject);
     }
     isoCharged.clear();
@@ -330,13 +330,13 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     double chargedPt=0.0;
     double puPt=0.0;
     double neutralPt=0.0;
-    BOOST_FOREACH(const PFCandidateRef& isoObject, isoCharged) {
+    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
       chargedPt += isoObject->pt();
     }
-    BOOST_FOREACH(const PFCandidateRef& isoObject, isoNeutral) {
+    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoNeutral) {
       neutralPt += isoObject->pt();
     }
-    BOOST_FOREACH(const PFCandidateRef& isoObject, isoPU) {
+    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoPU) {
       puPt += isoObject->pt();
     }
 

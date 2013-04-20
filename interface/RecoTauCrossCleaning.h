@@ -5,59 +5,93 @@
 
 #include "DataFormats/TauReco/interface/RecoTauPiZero.h"
 #include "CommonTools/CandUtils/interface/AddFourMomenta.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/TauReco/interface/PFRecoTauChargedHadron.h"
+#include "DataFormats/Candidate/interface/CompositePtrCandidate.h"
 
 namespace reco { namespace tau { namespace xclean {
 
 /// Transform a pizero to remove given candidates
 template<typename PtrIter>
-class CrossCleanPiZeros {
-  public:
-    typedef std::vector<RecoTauPiZero> PiZeroList;
+class CrossCleanPiZeros 
+{
+ public:
+  typedef std::vector<RecoTauPiZero> PiZeroList;
 
-    CrossCleanPiZeros(PtrIter signalTracksBegin, PtrIter signalTracksEnd) {
-      // Get the list of objects we need to clean
-      for (PtrIter i = signalTracksBegin; i != signalTracksEnd; ++i) {
-        toRemove_.insert(reco::CandidatePtr(*i));
+  CrossCleanPiZeros(PtrIter signalTracksBegin, PtrIter signalTracksEnd) 
+  {
+    initialize(signalTracksBegin, signalTracksEnd);
+  }
+
+  void initialize(PtrIter signalTracksBegin, PtrIter signalTracksEnd)
+  {
+    // CV: make sure this never gets called.
+    assert(0);
+  }
+
+  /// Return a vector of pointers to pizeros.  PiZeros that needed cleaning
+  /// are cloned, modified, and owned by this class.  The un-modified pointers
+  /// point to objects in the [input] vector.
+  PiZeroList operator()(const std::vector<RecoTauPiZero> &input) const 
+  {
+    PiZeroList output;
+    output.reserve(input.size());
+    BOOST_FOREACH( const RecoTauPiZero& piZero, input ) {
+      const RecoTauPiZero::daughters& daughters = piZero.daughterPtrVector();
+      std::set<reco::CandidatePtr> toCheck(daughters.begin(), daughters.end());
+      std::vector<reco::CandidatePtr> cleanDaughters;
+      std::set_difference(toCheck.begin(), toCheck.end(), toRemove_.begin(), toRemove_.end(), std::back_inserter(cleanDaughters));
+      if ( cleanDaughters.size() == daughters.size() ) {
+	// We don't need to clean anything, just add a pointer to current cnad
+	output.push_back(piZero);
+      } else {
+	// Otherwise rebuild
+	RecoTauPiZero newPiZero = piZero;
+	newPiZero.clearDaughters();
+	// Add our cleaned daughters.
+	BOOST_FOREACH( const reco::CandidatePtr& ptr, cleanDaughters ) {
+	  newPiZero.addDaughter(ptr);
+	}
+	// Check if the pizero is not empty.  If empty, forget it.
+	if ( newPiZero.numberOfDaughters() ) {
+	  p4Builder_.set(newPiZero);
+	  // Make our ptr container take ownership.
+	  output.push_back(newPiZero);
+	}
       }
     }
+    return output;
+  }
 
-    /// Return a vector of pointers to pizeros.  PiZeros that needed cleaning
-    /// are cloned, modified, and owned by this class.  The un-modified pointers
-    /// point to objects in the [input] vector.
-    PiZeroList operator()(const std::vector<RecoTauPiZero> &input) const {
-      PiZeroList output;
-      output.reserve(input.size());
-      BOOST_FOREACH(const RecoTauPiZero& piZero, input) {
-        const RecoTauPiZero::daughters& daughters = piZero.daughterPtrVector();
-        std::set<reco::CandidatePtr> toCheck(daughters.begin(), daughters.end());
-        std::vector<reco::CandidatePtr> cleanDaughters;
-        std::set_difference(toCheck.begin(), toCheck.end(),
-            toRemove_.begin(), toRemove_.end(), std::back_inserter(cleanDaughters));
-        if (cleanDaughters.size() == daughters.size()) {
-          // We don't need to clean anything, just add a pointer to current cnad
-          output.push_back(piZero);
-        } else {
-          // Otherwise rebuild
-          RecoTauPiZero newPiZero = piZero;
-          newPiZero.clearDaughters();
-          // Add our cleaned daughters.
-          BOOST_FOREACH(const reco::CandidatePtr& ptr, cleanDaughters) {
-            newPiZero.addDaughter(ptr);
-          }
-          // Check if the pizero is not empty.  If empty, forget it.
-          if (newPiZero.numberOfDaughters()) {
-            p4Builder_.set(newPiZero);
-            // Make our ptr container take ownership.
-            output.push_back(newPiZero);
-          }
-        }
-      }
-      return output;
-    }
+ private:
+  AddFourMomenta p4Builder_;
+  std::set<reco::CandidatePtr> toRemove_;
+};
 
-  private:
-    AddFourMomenta p4Builder_;
-    std::set<reco::CandidatePtr> toRemove_;
+// Determine if a candidate is contained in a collection of charged hadrons or pizeros.
+template<typename ParticleList>
+class CrossCleanPtrs 
+{
+ public:
+  CrossCleanPtrs(const ParticleList& particles)
+  {
+    initialize(particles);
+  }
+
+  void initialize(const ParticleList&)
+  {
+    // CV: make sure this never gets called.
+    assert(0);
+  }
+
+  template<typename AnyPtr>
+  bool operator() (const AnyPtr& ptr) const 
+  {
+    if ( toRemove_.count(CandidatePtr(ptr)) ) return false;
+    else return true;
+  }
+ private:
+  std::set<CandidatePtr> toRemove_;
 };
 
 // Predicate to filter PFCandPtrs (and those compatible to this type) by the
@@ -73,26 +107,6 @@ class FilterPFCandByParticleId {
       }
   private:
     int id_;
-};
-
-// Determine if a candidate is contained in a collection of PiZeros.
-class CrossCleanPtrs {
-  public:
-    CrossCleanPtrs(const std::vector<reco::RecoTauPiZero> &piZeros) {
-      BOOST_FOREACH(const PFCandidatePtr &ptr, flattenPiZeros(piZeros)) {
-        toRemove_.insert(CandidatePtr(ptr));
-      }
-    }
-
-    template<typename AnyPtr>
-    bool operator() (const AnyPtr& ptr) const {
-      if (toRemove_.count(CandidatePtr(ptr)))
-        return false;
-      else
-        return true;
-    }
-  private:
-    std::set<CandidatePtr> toRemove_;
 };
 
 // Create the AND of two predicates
@@ -118,4 +132,5 @@ PredicateAND<P1, P2> makePredicateAND(const P1& p1, const P2& p2) {
 }
 
 }}}
+
 #endif
