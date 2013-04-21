@@ -167,11 +167,14 @@ void PFRecoTauDiscriminationAgainstElectronMVA2::beginEvent(const edm::Event& ev
 
 double PFRecoTauDiscriminationAgainstElectronMVA2::discriminate(const PFTauRef& thePFTauRef)
 {
+  // CV: computation of anti-electron MVA value requires presence of leading charged hadron
+  if ( thePFTauRef->leadPFChargedHadrCand().isNull() ) return 0.;
+
   double mva = 1.;
   double workingPoint = 1.;
   double category = -1.;
   bool isGsfElectronMatched = false;
-  if( (*thePFTauRef).leadPFChargedHadrCand().isNonnull()) {
+  if ( (*thePFTauRef).leadPFChargedHadrCand().isNonnull() ) { 
     for ( reco::GsfElectronCollection::const_iterator theGsfElectron = gsfElectrons_->begin();
 	  theGsfElectron != gsfElectrons_->end(); ++theGsfElectron ) {
       if ( theGsfElectron->pt() > 10. ) { // CV: only take electrons above some minimal energy/Pt into account...
@@ -179,11 +182,9 @@ double PFRecoTauDiscriminationAgainstElectronMVA2::discriminate(const PFTauRef& 
 	if ( deltaREleTau < 0.3 ) {
 	  double mva_match = mva_->MVAValue(*thePFTauRef, *theGsfElectron);
           double workingPoint_match = 0.;
-
 	  size_t numSignalPFGammaCands = thePFTauRef->signalPFGammaCands().size();
 	  bool hasGsfTrack = thePFTauRef->leadPFChargedHadrCand()->gsfTrackRef().isNonnull();
 	  bool isPFElectron = (theGsfElectron->mvaOutput().mva > -0.1);
-
 	  if ( thePFTauRef->signalPFChargedHadrCands().size() == 1 ) {
 	    double mvaCut = 999.;
 	    if ( TMath::Abs(thePFTauRef->eta()) < 1.5 ) { // Barrel

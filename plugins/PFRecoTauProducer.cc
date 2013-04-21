@@ -49,14 +49,14 @@ class PFRecoTauProducer : public EDProducer {
 };
 
 PFRecoTauProducer::PFRecoTauProducer(const edm::ParameterSet& iConfig){
-  PFTauTagInfoProducer_   = iConfig.getParameter<edm::InputTag>("PFTauTagInfoProducer");
-  ElectronPreIDProducer_  = iConfig.getParameter<edm::InputTag>("ElectronPreIDProducer");
-  PVProducer_             = iConfig.getParameter<edm::InputTag>("PVProducer");
-  Algorithm_              = iConfig.getParameter<std::string>("Algorithm");
-  smearedPVsigmaX_        = iConfig.getParameter<double>("smearedPVsigmaX");
-  smearedPVsigmaY_        = iConfig.getParameter<double>("smearedPVsigmaY");
-  smearedPVsigmaZ_        = iConfig.getParameter<double>("smearedPVsigmaZ");	
-  JetMinPt_               = iConfig.getParameter<double>("JetPtMin");
+  PFTauTagInfoProducer_  = iConfig.getParameter<edm::InputTag>("PFTauTagInfoProducer");
+  ElectronPreIDProducer_ = iConfig.getParameter<edm::InputTag>("ElectronPreIDProducer");
+  PVProducer_            = iConfig.getParameter<edm::InputTag>("PVProducer");
+  Algorithm_             = iConfig.getParameter<std::string>("Algorithm");
+  smearedPVsigmaX_       = iConfig.getParameter<double>("smearedPVsigmaX");
+  smearedPVsigmaY_       = iConfig.getParameter<double>("smearedPVsigmaY");
+  smearedPVsigmaZ_       = iConfig.getParameter<double>("smearedPVsigmaZ");	
+  JetMinPt_              = iConfig.getParameter<double>("JetPtMin");
 
   if(Algorithm_ =="ConeBased") {
     PFRecoTauAlgo_=new PFRecoTauAlgorithm(iConfig);

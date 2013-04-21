@@ -207,6 +207,9 @@ void PFRecoTauDiscriminationAgainstElectronMVA3::beginEvent(const edm::Event& ev
 
 double PFRecoTauDiscriminationAgainstElectronMVA3::discriminate(const PFTauRef& thePFTauRef)
 {
+  // CV: computation of anti-electron MVA value requires presence of leading charged hadron
+  if ( thePFTauRef->leadPFChargedHadrCand().isNull() ) return 0.;
+
   double mva = 1.;
   double workingPoint = 1.;
   double category = -1.;

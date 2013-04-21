@@ -262,15 +262,14 @@ double AntiElectronIDMVA::MVAValue(const reco::PFTauRef& thePFTauRef){
 
   for(unsigned int k = 0 ; k < (thePFTauRef->signalPFGammaCands()).size() ; k++){
     const reco::PFCandidatePtr& gamma = (thePFTauRef->signalPFGammaCands()).at(k);
-    if( (thePFTauRef->leadPFChargedHadrCand()).isNonnull() ){
+    if ( (thePFTauRef->leadPFChargedHadrCand()).isNonnull() ) {
       GammasdEta.push_back( gamma->eta() - thePFTauRef->leadPFChargedHadrCand()->eta() );
       GammasdPhi.push_back( gamma->phi() - thePFTauRef->leadPFChargedHadrCand()->phi() );
-    }
-    else{
+    } else {
       GammasdEta.push_back( gamma->eta() - thePFTauRef->eta() );
       GammasdPhi.push_back( gamma->phi() - thePFTauRef->phi() );
     }
-    GammasPt.push_back(  gamma->pt() );
+    GammasPt.push_back( gamma->pt() );
   }
 
   float sumPt  = 0;

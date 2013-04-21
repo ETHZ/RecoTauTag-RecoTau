@@ -50,6 +50,15 @@ leadPionFinding = cms.PSet(
     src = cms.InputTag("DISCRIMINATOR_SRC"),
 )
 
+pt = cms.PSet(
+    name = cms.string("Pt"),
+    plugin = cms.string("RecoTauStringCleanerPlugin"),
+    # Require that cones were built by ensuring the a leadCand exits
+    selection = cms.string("leadPFCand().isNonnull()"),
+    selectionPassFunction = cms.string("-pt()"), # CV: negative sign means that we prefer candidates of high pT
+    selectionFailValue = cms.double(1e3)
+)
+
 combinedIsolation = cms.PSet(
     name = cms.string("CombinedIsolation"),
     plugin = cms.string("RecoTauStringCleanerPlugin"),

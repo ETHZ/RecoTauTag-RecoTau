@@ -13,6 +13,7 @@ hpsSelectionDiscriminator = cms.EDProducer(
         cms.PSet(
             nCharged = cms.uint32(1),
             nPiZeros = cms.uint32(0),
+            nTracksMin = cms.uint32(1),
             # Always passes
             # If an PF electron is selected as the lead track, the tau can have
             # negative mass. FIXME - investigate this
@@ -22,6 +23,7 @@ hpsSelectionDiscriminator = cms.EDProducer(
         cms.PSet(
             nCharged = cms.uint32(1),
             nPiZeros = cms.uint32(1),
+            nTracksMin = cms.uint32(1),
             minMass = cms.double(0.3),
             maxMass = cms.string("max(1.3, min(1.3*sqrt(pt/200.), 2.1))"),
             assumeStripMass = cms.double(0.1349)
@@ -29,6 +31,7 @@ hpsSelectionDiscriminator = cms.EDProducer(
         cms.PSet(
             nCharged = cms.uint32(1),
             nPiZeros = cms.uint32(2),
+            nTracksMin = cms.uint32(1),
             minMass = cms.double(0.4),
             maxMass = cms.string("max(1.2, min(1.2*sqrt(pt/200.), 2.0))"),
             minPi0Mass = cms.double(0.05),
@@ -37,10 +40,32 @@ hpsSelectionDiscriminator = cms.EDProducer(
             assumeStripMass = cms.double(0.0)
         ),
         cms.PSet(
+            nCharged = cms.uint32(2),
+            nPiZeros = cms.uint32(0),
+            nTracksMin = cms.uint32(2),
+            minMass = cms.double(0.),
+            maxMass = cms.string("1.5")
+        ),
+        cms.PSet(
+            nCharged = cms.uint32(2),
+            nPiZeros = cms.uint32(1),
+            nTracksMin = cms.uint32(2),
+            minMass = cms.double(0.),
+            maxMass = cms.string("max(1.2, min(2.0*sqrt(pt/200.), 4.0))")
+        ),
+        cms.PSet(
             nCharged = cms.uint32(3),
             nPiZeros = cms.uint32(0),
-            minMass = cms.double(0.8),
+            nTracksMin = cms.uint32(2),
+            minMass = cms.double(0.),
             maxMass = cms.string("1.5")
+        ),
+        cms.PSet(
+            nCharged = cms.uint32(3),
+            nPiZeros = cms.uint32(1),
+            nTracksMin = cms.uint32(2),
+            minMass = cms.double(0.),
+            maxMass = cms.string("max(1.2, min(2.0*sqrt(pt/200.), 4.0))")
         )
     )
 )

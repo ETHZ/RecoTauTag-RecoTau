@@ -212,8 +212,8 @@ RecoTauBuilderCombinatoricPlugin::operator()(
       if ( cleanPiZeros.size() < piZerosToBuild ) continue;
       
       // Find the start and end of potential signal tracks
-      PiZeroList::const_iterator piZero_begin = cleanPiZeros.begin();
-      PiZeroList::const_iterator piZero_end = cleanPiZeros.end();
+      PiZeroList::iterator piZero_begin = cleanPiZeros.begin();
+      PiZeroList::iterator piZero_end = cleanPiZeros.end();
       piZero_end = takeNElements(piZero_begin, piZero_end, decayMode->maxPiZeros_);
       
       // Build our piZero combo generator
@@ -328,7 +328,7 @@ RecoTauBuilderCombinatoricPlugin::operator()(
                 pfChargedJunk, regionalJunk.begin(), regionalJunk.end()),
             boost::make_filter_iterator(
                 pfChargedJunk, regionalJunk.end(), regionalJunk.end()));
-	/*
+	
         // Add all gammas that are in the iso cone but weren't in the
         // orginal PFJet
         tau.addPFCands(
@@ -379,7 +379,6 @@ RecoTauBuilderCombinatoricPlugin::operator()(
 	if ( primaryVertexRef.isNonnull() ) tauPtr->setVertex(primaryVertexRef->position());
 
         output.push_back(tauPtr);
-*/
       }
     }
   }

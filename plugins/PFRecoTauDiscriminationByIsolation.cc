@@ -233,34 +233,39 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   reco::VertexRef pv = vertexAssociator_->associatedVertex(*pfTau);
   // Let the quality cuts know which the vertex to use when applying selections
   // on dz, etc.
+
+  // CV: isolation is not well defined in case primary vertex or leading charged hadron do not exist
+  if ( !(pv.isNonnull() && pfTau->leadPFChargedHadrCand().isNonnull()) ) return 0.;
+
   qcuts_->setPV(pv);
   qcuts_->setLeadTrack(pfTau->leadPFChargedHadrCand());
-  if (applyDeltaBeta_) {
+
+  if ( applyDeltaBeta_ ) {
     pileupQcutsGeneralQCuts_->setPV(pv);
     pileupQcutsGeneralQCuts_->setLeadTrack(pfTau->leadPFChargedHadrCand());
     pileupQcutsPUTrackSelection_->setPV(pv);
     pileupQcutsPUTrackSelection_->setLeadTrack(pfTau->leadPFChargedHadrCand());
   }
+
   // Load the tracks if they are being used.
-  if (includeTracks_) {
+  if ( includeTracks_ ) {
     BOOST_FOREACH(const reco::PFCandidatePtr& cand,
         pfTau->isolationPFChargedHadrCands()) {
       if (qcuts_->filterCandRef(cand))
         isoCharged.push_back(cand);
     }
   }
-
-  if (includeGammas_) {
-    BOOST_FOREACH(const reco::PFCandidatePtr& cand,
-        pfTau->isolationPFGammaCands()) {
-      if (qcuts_->filterCandRef(cand))
+  if ( includeGammas_ ) {
+    BOOST_FOREACH( const reco::PFCandidatePtr& cand, pfTau->isolationPFGammaCands() ) {
+      if ( qcuts_->filterCandRef(cand) )
         isoNeutral.push_back(cand);
     }
   }
+
   typedef reco::tau::cone::DeltaRPtrFilter<PFCandidatePtr> DRFilter;
 
   // If desired, get PU tracks.
-  if (applyDeltaBeta_) {
+  if ( applyDeltaBeta_ ) {
     // First select by inverted the DZ/track weight cuts. True = invert
     //std::cout << "Initial PFCands: " << chargedPFCandidatesInEvent_.size()
     //  << std::endl;
@@ -268,13 +273,11 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     std::vector<PFCandidatePtr> allPU =
       pileupQcutsPUTrackSelection_->filterCandRefs(
           chargedPFCandidatesInEvent_, true);
-
     //std::cout << "After track cuts: " << allPU.size() << std::endl;
 
     // Now apply the rest of the cuts, like pt, and TIP, tracker hits, etc
     std::vector<PFCandidatePtr> cleanPU =
       pileupQcutsGeneralQCuts_->filterCandRefs(allPU);
-
     //std::cout << "After cleaning cuts: " << cleanPU.size() << std::endl;
 
     // Only select PU tracks inside the isolation cone.
@@ -288,63 +291,63 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   }
 
   // Check if we want a custom iso cone
-  if (customIsoCone_ >= 0.) {
+  if ( customIsoCone_ >= 0. ) {
     DRFilter filter(pfTau->p4(), 0, customIsoCone_);
     std::vector<PFCandidatePtr> isoCharged_filter;
     std::vector<PFCandidatePtr> isoNeutral_filter;
     // Remove all the objects not in our iso cone
-     BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
-      if(filter(isoObject)) isoCharged_filter.push_back(isoObject);
+    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
+      if ( filter(isoObject) ) isoCharged_filter.push_back(isoObject);
     }
     BOOST_FOREACH(const PFCandidatePtr& isoObject, isoNeutral) {
-      if(filter(isoObject)) isoNeutral_filter.push_back(isoObject);
+      if ( filter(isoObject) ) isoNeutral_filter.push_back(isoObject);
     }
-    isoCharged.clear();
-    isoCharged=isoCharged_filter;
-    isoNeutral.clear();
-    isoNeutral=isoNeutral_filter;
 
+    isoCharged.clear();
+    isoCharged = isoCharged_filter;
+    isoNeutral.clear();
+    isoNeutral = isoNeutral_filter;
   }
 
   bool failsOccupancyCut     = false;
   bool failsSumPtCut         = false;
   bool failsRelativeSumPtCut = false;
 
-  //--- nObjects requirement
+//--- nObjects requirement
   int neutrals = isoNeutral.size();
 
-  if (applyDeltaBeta_) {
+  if ( applyDeltaBeta_ ) {
     neutrals -= TMath::Nint(deltaBetaFactorThisEvent_*isoPU.size());
   }
   if(neutrals < 0) {
-    neutrals=0;
+    neutrals = 0;
   }
 
   size_t nOccupants = isoCharged.size() + neutrals;
 
   failsOccupancyCut = ( nOccupants > maximumOccupancy_ );
 
-  double totalPt=0.0;
+  double totalPt = 0.0;
   //--- Sum PT requirement
-  if( applySumPtCut_ || applyRelativeSumPtCut_ || storeRawSumPt_) {
-    double chargedPt=0.0;
-    double puPt=0.0;
-    double neutralPt=0.0;
-    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
+  if ( applySumPtCut_ || applyRelativeSumPtCut_ || storeRawSumPt_) {
+    double chargedPt = 0.0;
+    double puPt = 0.0;
+    double neutralPt = 0.0;
+    BOOST_FOREACH ( const PFCandidatePtr& isoObject, isoCharged ) {
       chargedPt += isoObject->pt();
     }
-    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoNeutral) {
+    BOOST_FOREACH ( const PFCandidatePtr& isoObject, isoNeutral ) {
       neutralPt += isoObject->pt();
     }
-    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoPU) {
+    BOOST_FOREACH ( const PFCandidatePtr& isoObject, isoPU ) {
       puPt += isoObject->pt();
     }
 
-    if (applyDeltaBeta_) {
+    if ( applyDeltaBeta_ ) {
       neutralPt -= deltaBetaFactorThisEvent_*puPt;
     }
 
-    if (applyRhoCorrection_) {
+    if ( applyRhoCorrection_ ) {
       neutralPt -= rhoThisEvent_;
     }
 
@@ -352,7 +355,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
       neutralPt = 0.0;
     }
 
-    totalPt = chargedPt+neutralPt;
+    totalPt = chargedPt + neutralPt;
 
     failsSumPtCut = (totalPt > maximumSumPt_);
 

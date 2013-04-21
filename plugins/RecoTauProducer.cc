@@ -72,6 +72,7 @@ RecoTauProducer::RecoTauProducer(const edm::ParameterSet& pset)
 {
   jetSrc_ = pset.getParameter<edm::InputTag>("jetSrc");
   jetRegionSrc_ = pset.getParameter<edm::InputTag>("jetRegionSrc");
+  chargedHadronSrc_ = pset.getParameter<edm::InputTag>("chargedHadronSrc");
   piZeroSrc_ = pset.getParameter<edm::InputTag>("piZeroSrc");
 
   typedef std::vector<edm::ParameterSet> VPSet;

@@ -117,34 +117,34 @@ void RecoTauConstructor::addTauChargedHadron(Region region, const PFRecoTauCharg
   }
 }
 
-void RecoTauConstructor::reservePiZero(Region region, size_t size) {
-  if(region == kSignal) {
+void RecoTauConstructor::reservePiZero(Region region, size_t size) 
+{
+  if ( region == kSignal ) {
     tau_->signalPiZeroCandidates_.reserve(size);
     // If we are building the gammas with the pizeros, resize that
     // vector as well
-    if(copyGammas_)
-      reserve(kSignal, kGamma, 2*size);
+    if ( copyGammas_ ) reserve(kSignal, kGamma, 2*size);
   } else {
     tau_->isolationPiZeroCandidates_.reserve(size);
-    if(copyGammas_)
-      reserve(kIsolation, kGamma, 2*size);
+    if ( copyGammas_ ) reserve(kIsolation, kGamma, 2*size);
   }
 }
 
-void RecoTauConstructor::addPiZero(Region region, const RecoTauPiZero& piZero) {
-  if(region == kSignal) {
+void RecoTauConstructor::addPiZero(Region region, const RecoTauPiZero& piZero) 
+{
+  if ( region == kSignal ) {
     tau_->signalPiZeroCandidates_.push_back(piZero);
     // Copy the daughter gammas into the gamma collection if desired
-    if(copyGammas_) {
+    if ( copyGammas_ ) {
       // If we are using the pizeros to build the gammas, make sure we update
       // the four vector correctly.
       p4_ += piZero.p4();
-      addPFCands(kSignal, kGamma, piZero.daughterPtrVector().begin(),
+      addPFCands(kSignal, kGamma, piZero.daughterPtrVector().begin(), 
           piZero.daughterPtrVector().end());
     }
   } else {
     tau_->isolationPiZeroCandidates_.push_back(piZero);
-    if(copyGammas_) {
+    if ( copyGammas_ ) {
       addPFCands(kIsolation, kGamma, piZero.daughterPtrVector().begin(),
           piZero.daughterPtrVector().end());
     }
@@ -207,7 +207,13 @@ template<typename T> bool ptDescendingPtr(const T& a, const T& b) {
 }
 
 void RecoTauConstructor::sortAndCopyIntoTau() {
-  // The pizeros are a special case, as we can sort them in situ
+  // The charged hadrons and pizeros are a special case, as we can sort them in situ
+  std::sort(tau_->signalTauChargedHadronCandidates_.begin(),
+            tau_->signalTauChargedHadronCandidates_.end(),
+            ptDescending<PFRecoTauChargedHadron>);
+  std::sort(tau_->isolationTauChargedHadronCandidates_.begin(),
+            tau_->isolationTauChargedHadronCandidates_.end(),
+            ptDescending<PFRecoTauChargedHadron>);
   std::sort(tau_->signalPiZeroCandidates_.begin(),
             tau_->signalPiZeroCandidates_.end(),
             ptDescending<RecoTauPiZero>);
@@ -230,15 +236,36 @@ void RecoTauConstructor::sortAndCopyIntoTau() {
   }
 }
 
-std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects) {
+std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects) 
+{
   // Copy the sorted collections into the interal tau refvectors
   sortAndCopyIntoTau();
 
   // Setup all the important member variables of the tau
   // Set charge of tau
-  tau_->setCharge(
-      sumPFCandCharge(getCollection(kSignal, kChargedHadron)->begin(),
-                      getCollection(kSignal, kChargedHadron)->end()));
+//  tau_->setCharge(
+//      sumPFCandCharge(getCollection(kSignal, kChargedHadron)->begin(),
+//                      getCollection(kSignal, kChargedHadron)->end()));
+  // CV: take charge of highest pT charged hadron as charge of tau,
+  //     in case tau does not have three reconstructed tracks
+  //    (either because tau is reconstructed as 2prong or because PFRecoTauChargedHadron is built from a PFNeutralHadron)
+  unsigned int nCharged = 0;
+  int charge = 0;
+  double leadChargedHadronPt = 0.;
+  int leadChargedHadronCharge = 0;
+  for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = tau_->signalTauChargedHadronCandidates_.begin();
+	chargedHadron != tau_->signalTauChargedHadronCandidates_.end(); ++chargedHadron ) {
+    if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kChargedPFCandidate) || chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
+      ++nCharged;
+      charge += chargedHadron->charge();
+      if ( chargedHadron->pt() > leadChargedHadronPt ) {	
+	leadChargedHadronPt = chargedHadron->pt();
+	leadChargedHadronCharge = chargedHadron->charge();
+      }
+    }
+  }
+  if ( nCharged == 3 ) tau_->setCharge(charge);
+  else tau_->setCharge(leadChargedHadronCharge);
 
   // Set PDG id
   tau_->setPdgId(tau_->charge() < 0 ? 15 : -15);
@@ -256,48 +283,41 @@ std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects) {
   tau_->setisolationPFChargedHadrCandsPtSum(
       sumPFCandPt(
         getCollection(kIsolation, kChargedHadron)->begin(),
-        getCollection(kIsolation, kChargedHadron)->end()
-        )
-      );
+        getCollection(kIsolation, kChargedHadron)->end()));
 
   // Set gamma isolation quantities
   tau_->setisolationPFGammaCandsEtSum(
       sumPFCandPt(
         getCollection(kIsolation, kGamma)->begin(),
-        getCollection(kIsolation, kGamma)->end()
-        )
-      );
+        getCollection(kIsolation, kGamma)->end()));
+
   // Set em fraction
   tau_->setemFraction(sumPFCandPt(
           getCollection(kSignal, kGamma)->begin(),
           getCollection(kSignal, kGamma)->end()) / tau_->pt());
 
-  if(setupLeadingObjects)
-  {
+  if ( setupLeadingObjects ) {
     typedef std::vector<PFCandidatePtr>::const_iterator Iter;
     // Find the highest PT object in the signal cone
     Iter leadingCand = leadPFCand(
         getCollection(kSignal, kAll)->begin(),
-        getCollection(kSignal, kAll)->end()
-        );
+        getCollection(kSignal, kAll)->end());
 
-    if(leadingCand != getCollection(kSignal, kAll)->end())
+    if ( leadingCand != getCollection(kSignal, kAll)->end() )
       tau_->setleadPFCand(*leadingCand);
 
     // Hardest charged object in signal cone
     Iter leadingChargedCand = leadPFCand(
         getCollection(kSignal, kChargedHadron)->begin(),
-        getCollection(kSignal, kChargedHadron)->end()
-        );
+        getCollection(kSignal, kChargedHadron)->end());
 
-    if(leadingChargedCand != getCollection(kSignal, kChargedHadron)->end())
+    if ( leadingChargedCand != getCollection(kSignal, kChargedHadron)->end() )
       tau_->setleadPFChargedHadrCand(*leadingChargedCand);
 
     // Hardest gamma object in signal cone
     Iter leadingGammaCand = leadPFCand(
         getCollection(kSignal, kGamma)->begin(),
-        getCollection(kSignal, kGamma)->end()
-        );
+        getCollection(kSignal, kGamma)->end());
 
     if(leadingGammaCand != getCollection(kSignal, kGamma)->end())
       tau_->setleadPFNeutralCand(*leadingGammaCand);

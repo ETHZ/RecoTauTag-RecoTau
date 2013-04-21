@@ -117,13 +117,13 @@ template<typename InputIterator> reco::Candidate::LorentzVector sumPFCandP4(
       reco::Candidate::LorentzVector());
 }
 
-/// Sum the PT of a collection of PFCandidates
+/// Sum the pT of a collection of PFCandidates
 template<typename InputIterator> double sumPFCandPt(InputIterator begin,
     InputIterator end) {
     return sumPFVector(begin, end, &PFCandidate::pt, 0.0);
   }
 
-/// Sum the PT of a collection of PFCandidates
+/// Sum the charge of a collection of PFCandidates
 template<typename InputIterator> int sumPFCandCharge(InputIterator begin,
     InputIterator end) {
     return sumPFVector(begin, end, &PFCandidate::charge, 0);

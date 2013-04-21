@@ -15,9 +15,14 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/TauReco/interface/PFRecoTauChargedHadron.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Common/interface/RefToPtr.h"
 
 #include "RecoTauTag/RecoTau/interface/RecoTauCommonUtilities.h"
 #include "RecoTauTag/RecoTau/interface/RecoTauQualityCuts.h"
@@ -162,8 +167,9 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
     PFRecoTauChargedHadron::PFRecoTauChargedHadronAlgorithm algo = PFRecoTauChargedHadron::kUndefined;
     if ( fabs((*cand)->charge()) > 0.5 ) algo = PFRecoTauChargedHadron::kChargedPFCandidate;
     else algo = PFRecoTauChargedHadron::kPFNeutralHadron;
-
     std::auto_ptr<PFRecoTauChargedHadron> chargedHadron(new PFRecoTauChargedHadron(**cand, algo));
+    if ( (*cand)->trackRef().isNonnull() ) chargedHadron->track_ = edm::refToPtr((*cand)->trackRef());
+    else if ( (*cand)->gsfTrackRef().isNonnull() ) chargedHadron->track_ = edm::refToPtr((*cand)->gsfTrackRef());
     chargedHadron->chargedPFCandidate_ = (*cand);
     chargedHadron->addDaughter(*cand);
 
@@ -191,8 +197,7 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
 	minBlockElementMatches = minBlockElementMatchesPhoton_;
 	maxUnmatchedBlockElements = maxUnmatchedBlockElementsPhoton_;
       }
-      if ( dR < dRmerge || 
-	   isMatchedByBlockElement(**jetConstituent, *chargedHadron->chargedPFCandidate_, minBlockElementMatches, minBlockElementMatches, maxUnmatchedBlockElements) ) {
+      if ( dR < dRmerge || isMatchedByBlockElement(**jetConstituent, *chargedHadron->chargedPFCandidate_, minBlockElementMatches, minBlockElementMatches, maxUnmatchedBlockElements) ) {
 	chargedHadron->neutralPFCandidates_.push_back(*jetConstituent);
 	chargedHadron->addDaughter(*jetConstituent);
       }
