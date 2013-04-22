@@ -44,24 +44,32 @@ RecoTauConstructor::RecoTauConstructor(const PFJetRef& jet,
   tau_->setjetRef(jet);
 }
 
-void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidateRef& ref) {
+void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidateRef& ref, bool forceAddToP4) {
+  //std::cout << "<RecoTauConstructor::addPFCand>:" << std::endl;
+  //std::cout << " region = " << region << ", type = " << type << ": Pt = " << ref->pt() << ", eta = " << ref->eta() << ", phi = " << ref->phi() << std::endl;
   if ( region == kSignal ) {
     // Keep track of the four vector of the signal vector products added so far.
     // If a photon add it if we are not using PiZeros to build the gammas
-    if ( (type != kGamma) || !copyGammas_ )
+    if ( forceAddToP4 || (type != kGamma) || !copyGammas_ ) {
+      //std::cout << "--> adding PFCand to tauP4." << std::endl;
       p4_ += ref->p4();
+    }
   }
   getSortedCollection(region, type)->push_back(edm::refToPtr<PFCandidateCollection>(ref));
   // Add to global collection
   getSortedCollection(region, kAll)->push_back(edm::refToPtr<PFCandidateCollection>(ref));
 }
 
-void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidatePtr& ptr) {
+void RecoTauConstructor::addPFCand(Region region, ParticleType type, const PFCandidatePtr& ptr, bool forceAddToP4) {
+  //std::cout << "<RecoTauConstructor::addPFCand>:" << std::endl;
+  //std::cout << " region = " << region << ", type = " << type << ": Pt = " << ptr->pt() << ", eta = " << ptr->eta() << ", phi = " << ptr->phi() << std::endl;
   if ( region == kSignal ) {
     // Keep track of the four vector of the signal vector products added so far.
     // If a photon add it if we are not using PiZeros to build the gammas
-    if ( (type != kGamma) || !copyGammas_ )
+    if ( forceAddToP4 || (type != kGamma) || !copyGammas_ ) {
+      //std::cout << "--> adding PFCand to tauP4." << std::endl;
       p4_ += ptr->p4();
+    }
   }
   getSortedCollection(region, type)->push_back(ptr);
   // Add to global collection
@@ -94,13 +102,13 @@ void RecoTauConstructor::addTauChargedHadron(Region region, const PFRecoTauCharg
   if ( region == kSignal ) {
     tau_->signalTauChargedHadronCandidates_.push_back(chargedHadron);
     if ( chargedHadron.getChargedPFCandidate().isNonnull() ) {
-      addPFCand(kSignal, kChargedHadron, chargedHadron.getChargedPFCandidate());
+      addPFCand(kSignal, kChargedHadron, chargedHadron.getChargedPFCandidate(), true);
     }
     const std::vector<PFCandidatePtr>& neutrals = chargedHadron.getNeutralPFCandidates();
     for ( std::vector<PFCandidatePtr>::const_iterator neutral = neutrals.begin();
 	  neutral != neutrals.end(); ++neutral ) {
-      if      ( (*neutral)->particleId() == reco::PFCandidate::gamma ) addPFCand(kSignal, kGamma, *neutral);
-      else if ( (*neutral)->particleId() == reco::PFCandidate::h0    ) addPFCand(kSignal, kNeutralHadron, *neutral);
+      if      ( (*neutral)->particleId() == reco::PFCandidate::gamma ) addPFCand(kSignal, kGamma, *neutral, true);
+      else if ( (*neutral)->particleId() == reco::PFCandidate::h0    ) addPFCand(kSignal, kNeutralHadron, *neutral, true);
     };
   } else {
     tau_->isolationTauChargedHadronCandidates_.push_back(chargedHadron);
@@ -238,6 +246,8 @@ void RecoTauConstructor::sortAndCopyIntoTau() {
 
 std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects) 
 {
+  //std::cout << "<RecoTauConstructor::get>:" << std::endl;
+
   // Copy the sorted collections into the interal tau refvectors
   sortAndCopyIntoTau();
 
@@ -278,6 +288,7 @@ std::auto_ptr<reco::PFTau> RecoTauConstructor::get(bool setupLeadingObjects)
 //        getCollection(kSignal, kAll)->end()
 //        )
 //      );
+  //std::cout << "Pt = " << tau_->pt() << ", eta = " << tau_->eta() << ", phi = " << tau_->phi() << ", mass = " << tau_->mass() << std::endl;
 
   // Set charged isolation quantities
   tau_->setisolationPFChargedHadrCandsPtSum(
