@@ -1,7 +1,7 @@
 
 import FWCore.ParameterSet.Config as cms
 from RecoTauTag.RecoTau.PFRecoTauQualityCuts_cfi import PFTauQualityCuts
-from RecoTauTag.RecoTau.RecoTauEnergyRecoveryPlugin2_cfi import pfTauEnergyRecoveryPlugin2
+from RecoTauTag.RecoTau.PFRecoTauEnergyAlgorithmPlugin_cfi import pfTauEnergyAlgorithmPlugin
 
 '''
 
@@ -124,6 +124,14 @@ combinatoricRecoTaus = cms.EDProducer("RecoTauProducer",
             ElecPreIDLeadTkMatch_maxDR           = cms.double(0.01),
             maximumForElectrionPreIDOutput       = cms.double(-0.1),
             DataType = cms.string("AOD"),
+        ),
+        # Tau energy reconstruction
+        # (to avoid double-counting of energy carried by neutral PFCandidates
+        #  in case PFRecoTauChargedHadrons are built from reco::Tracks)                                          
+        cms.PSet(
+            pfTauEnergyAlgorithmPlugin,
+            name = cms.string("tau_en_reconstruction"),
+            plugin = cms.string("PFRecoTauEnergyAlgorithmPlugin")
         )
     )
 )

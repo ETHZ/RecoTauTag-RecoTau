@@ -40,12 +40,7 @@ class PFRecoTauEnergyAlgorithmPlugin : public RecoTauModifierPlugin
   virtual void beginEvent();
   virtual void endEvent();
 
-  //PFRecoTauChargedHadron clonePFRecoTauChargedHadron(const PFRecoTauChargedHadron& chargedHadron) const;
-
  private:
-
-  //mutable std::auto_ptr<PFRecoTauChargedHadronCollection> modifiedPFRecoTauChargedHadrons_;
-  //PFRecoTauChargedHadronRefProd modifiedPFRecoTauChargedHadronRefProd_;
   
   double dRaddNeutralHadron_;
   double minNeutralHadronEt_;
@@ -65,17 +60,10 @@ PFRecoTauEnergyAlgorithmPlugin::~PFRecoTauEnergyAlgorithmPlugin()
 {}
 
 void PFRecoTauEnergyAlgorithmPlugin::beginJob(edm::EDProducer* producer)
-{
-  //producer->produces<PFRecoTauChargedHadronCollection>("modifiedChargedHadrons");
-}
+{}
 
 void PFRecoTauEnergyAlgorithmPlugin::beginEvent()
-{
-  // Make a new collection of modified ChargedHadrons and
-  // get the reference to the product of where the modified ChargedHadrons will end up
-  //modifiedPFRecoTauChargedHadrons_.reset(new PFRecoTauChargedHadronCollection());
-  //modifiedPFRecoTauChargedHadronRefProd_ = evt()->getRefBeforePut<PFRecoTauChargedHadronCollection>("modifiedChargedHadrons");
-}
+{}
 
 namespace
 {
@@ -96,14 +84,6 @@ namespace
     tau.setP4(tauP4_modified);
   }
 }
-
-//PFRecoTauChargedHadron PFRecoTauEnergyAlgorithmPlugin::clonePFRecoTauChargedHadron(const PFRecoTauChargedHadron& chargedHadron) const
-//{
-  //modifiedPFRecoTauChargedHadrons_->push_back(chargedHadron);
-  //int idx = modifiedPFRecoTauChargedHadrons_->size() - 1;
-  //return PFRecoTauChargedHadronPtr(edm::refToPtr(PFRecoTauChargedHadronRef(modifiedPFRecoTauChargedHadronRefProd_, idx)));
-  ////return chargedHadron;
-//}
 
 void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 {
@@ -140,7 +120,7 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
       chargedHadronTracksSumPerr2 += getTrackPerr2(*chargedHadronTrack);
     }
   }
-
+ 
   if ( numChargedHadronTracks == 0 ) {
     // This is the easy case: 
     // All tau energy is taken from PFCandidates reconstructed by PFlow algorithm
@@ -179,21 +159,15 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
     if ( chargedHadronTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) ) {
       double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) - chargedHadronTracksSumP)/mergedNeutralsSumP4.energy();
       assert(scaleFactor >= 0. && scaleFactor <= 1.);
-      //std::vector<PFRecoTauChargedHadron> chargedHadrons_modified;
       reco::Candidate::LorentzVector diffP4;
       for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
 	    chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
 	if ( chargedHadron->getNeutralPFCandidates().size() >= 1 ) {
-	  //PFRecoTauChargedHadron chargedHadron_modified = clonePFRecoTauChargedHadron(**chargedHadron);
 	  const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
 	  setChargedHadronP4(*(const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified)), scaleFactor);
 	  diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
-	  //chargedHadrons_modified.push_back(chargedHadron_modified);
-	//} else {
-	  //chargedHadrons_modified.push_backchargedHadron;
 	}
       }
-      //tau.signalChargedHadrons_ = chargedHadrons_modified;
       updateTauP4(tau, diffP4);
       return;
     }
@@ -216,11 +190,9 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
     if ( chargedHadronTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) ) {
       double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) - chargedHadronTracksSumP)/chargedHadronNeutralsSumP4.energy();
       assert(scaleFactor >= 0. && scaleFactor <= 1.);
-      //std::vector<PFRecoTauChargedHadron> chargedHadrons_modified;
       reco::Candidate::LorentzVector diffP4;
       for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
 	    chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
-	//PFRecoTauChargedHadronPtr chargedHadron_modified = clonePFRecoTauChargedHadron(**chargedHadron);
 	 const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
 	(const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->neutralPFCandidates_.clear();
 	if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kPFNeutralHadron) ) {
@@ -231,23 +203,17 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 	  reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);
 	  (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->setP4(chargedHadronP4_modified);
 	  diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
-	  //chargedHadrons_modified.push_back(chargedHadron_modified);
-	//} else {
-	  //chargedHadrons_modified.push_backchargedHadron;
 	}
       }
-      //tau.signalChargedHadrons_ = chargedHadrons_modified;
       updateTauP4(tau, diffP4);
       return;
     } else {
       if ( numChargedHadronNeutrals == 0 ) {
 	// Adjust momenta of ChargedHadrons build from reco::Tracks to match sum of energy deposits in ECAL + HCAL
-	//std::vector<PFRecoTauChargedHadron> chargedHadrons_modified;
 	reco::Candidate::LorentzVector diffP4;
 	for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
 	      chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
 	  if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
-	    //PFRecoTauChargedHadronPtr chargedHadron_modified = clonePFRecoTauChargedHadron(**chargedHadron);
 	    const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
 	    (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->neutralPFCandidates_.clear();
 	    const edm::Ptr<Track>& track = chargedHadron->getTrack();
@@ -267,12 +233,8 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 	    reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);
 	    (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->setP4(chargedHadronP4_modified);
 	    diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
-	    //chargedHadrons_modified.push_back(chargedHadron_modified);
-	  //} else {
-	    //chargedHadrons_modified.push_backchargedHadron;
 	  }
 	}
-	//tau.signalChargedHadrons_ = chargedHadrons_modified;
 	updateTauP4(tau, diffP4);
 	return;
       } else {
@@ -292,9 +254,7 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 }
 
 void PFRecoTauEnergyAlgorithmPlugin::endEvent()
-{
-  //evt()->put(modifiedPFRecoTauChargedHadrons_, "modifiedChargedHadrons");
-}
+{}
 
 }} // end namespace reco::tau
 
