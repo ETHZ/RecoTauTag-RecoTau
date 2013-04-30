@@ -128,10 +128,11 @@ combinatoricRecoTaus = cms.EDProducer("RecoTauProducer",
         # Tau energy reconstruction
         # (to avoid double-counting of energy carried by neutral PFCandidates
         #  in case PFRecoTauChargedHadrons are built from reco::Tracks)                                          
-#         cms.PSet(
-#             pfTauEnergyAlgorithmPlugin,
-#             name = cms.string("tau_en_reconstruction"),
-#             plugin = cms.string("PFRecoTauEnergyAlgorithmPlugin")
-#         )
+        cms.PSet(
+            pfTauEnergyAlgorithmPlugin,
+            name = cms.string("tau_en_reconstruction"),
+            plugin = cms.string("PFRecoTauEnergyAlgorithmPlugin"),
+            verbosity = cms.int32(0)                                              
+        )
     )
 )

@@ -77,8 +77,8 @@ class RecoTauConstructor {
     }
 
     /// Append a PFCandidateRef/Ptr to a given collection
-    void addPFCand(Region region, ParticleType type, const PFCandidateRef& ref, bool forceAddToP4 = false);
-    void addPFCand(Region region, ParticleType type, const PFCandidatePtr& ptr, bool forceAddToP4 = false);
+    void addPFCand(Region region, ParticleType type, const PFCandidateRef& ref, bool skipAddToP4 = false);
+    void addPFCand(Region region, ParticleType type, const PFCandidatePtr& ptr, bool skipAddToP4 = false);
 
     /// Reserve a set amount of space for a given RefVector
     void reserve(Region region, ParticleType type, size_t size);

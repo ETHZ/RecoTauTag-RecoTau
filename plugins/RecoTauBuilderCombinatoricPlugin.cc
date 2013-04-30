@@ -246,17 +246,21 @@ RecoTauBuilderCombinatoricPlugin::operator()(
 	    RecoTauConstructor::kIsolation,
 	    (cleanPiZeros.size() - piZerosToBuild));
 
-        // Set signal and isolation components for charged hadrons, after
-        // converting them to a PFCandidateRefVector
-        tau.addTauChargedHadrons(
-            RecoTauConstructor::kSignal, 
-            trackCombo->combo_begin(), trackCombo->combo_end());
-
         // Get signal PiZero constituents and add them to the tau.
         // The sub-gammas are automatically added.
         tau.addPiZeros(
             RecoTauConstructor::kSignal,
             piZeroCombo->combo_begin(), piZeroCombo->combo_end());
+
+	// Set signal and isolation components for charged hadrons, after
+        // converting them to a PFCandidateRefVector
+	//
+	// NOTE: signal ChargedHadrons need to be added **after** signal PiZeros
+	//       to avoid double-counting PFGammas as part of PiZero and merged with ChargedHadron
+	//
+        tau.addTauChargedHadrons(
+            RecoTauConstructor::kSignal, 
+            trackCombo->combo_begin(), trackCombo->combo_end());
 
         // Now build isolation collections
         // Load our isolation tools
@@ -264,8 +268,8 @@ RecoTauBuilderCombinatoricPlugin::operator()(
         PFCandPtrDRFilter isolationConeFilter(tau.p4(), 0, isolationConeSize_);
 
         // Cross cleaning predicate.  Remove any PFCandidatePtrs that are
-        // contained within existing PiZeros.  This predicate will return false
-        // for any object that overlaps with cleanPiZeros.
+        // contained within existing ChargedHadrons or PiZeros.  This predicate will return false
+        // for any object that overlaps with chargedHadrons or cleanPiZeros.
 	xclean::CrossCleanPtrs<PiZeroList> pfCandXCleaner_pizeros(cleanPiZeros);
 	xclean::CrossCleanPtrs<ChargedHadronList> pfCandXCleaner_chargedHadrons(chargedHadrons);
 	typedef xclean::PredicateAND<xclean::CrossCleanPtrs<PiZeroList>, xclean::CrossCleanPtrs<ChargedHadronList> > pfCandXCleanerType;
@@ -300,7 +304,29 @@ RecoTauBuilderCombinatoricPlugin::operator()(
             pfnhCandSelector, // select neutral stuff from junk
             isolationConeFilter); // select stuff in iso cone
  
+	tau.addPiZeros(
+            RecoTauConstructor::kIsolation,
+            boost::make_filter_iterator(
+                isolationConeFilterPiZero,
+                piZeroCombo->remainder_begin(), piZeroCombo->remainder_end()),
+            boost::make_filter_iterator(
+                isolationConeFilterPiZero,
+                piZeroCombo->remainder_end(), piZeroCombo->remainder_end()));
+	
+        tau.addPiZeros(
+            RecoTauConstructor::kIsolation,
+            boost::make_filter_iterator(
+                isolationConeFilterPiZero,
+                piZero_end, cleanPiZeros.end()),
+            boost::make_filter_iterator(
+                isolationConeFilterPiZero,
+                cleanPiZeros.end(), cleanPiZeros.end()));
+
         // Filter the isolation candidates in a DR cone
+	//
+	// NOTE: isolation ChargedHadrons need to be added **after** signal and isolation PiZeros
+	//       to avoid double-counting PFGammas as part of PiZero and merged with ChargedHadron
+	//
         tau.addTauChargedHadrons(
             RecoTauConstructor::kIsolation,
             boost::make_filter_iterator(
@@ -355,24 +381,6 @@ RecoTauBuilderCombinatoricPlugin::operator()(
               pfNeutralJunk, regionalJunk.begin(), regionalJunk.end()),
             boost::make_filter_iterator(
               pfNeutralJunk, regionalJunk.end(), regionalJunk.end()));
-
-        tau.addPiZeros(
-            RecoTauConstructor::kIsolation,
-            boost::make_filter_iterator(
-                isolationConeFilterPiZero,
-                piZeroCombo->remainder_begin(), piZeroCombo->remainder_end()),
-            boost::make_filter_iterator(
-                isolationConeFilterPiZero,
-                piZeroCombo->remainder_end(), piZeroCombo->remainder_end()));
-
-        tau.addPiZeros(
-            RecoTauConstructor::kIsolation,
-            boost::make_filter_iterator(
-                isolationConeFilterPiZero,
-                piZero_end, cleanPiZeros.end()),
-            boost::make_filter_iterator(
-                isolationConeFilterPiZero,
-                cleanPiZeros.end(), cleanPiZeros.end()));
 
         std::auto_ptr<reco::PFTau> tauPtr = tau.get(true);
 	

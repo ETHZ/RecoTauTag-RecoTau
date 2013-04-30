@@ -107,20 +107,24 @@ double
 PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau) 
 {
   //std::cout << "<PFRecoTauDiscriminationByHPSSelection::discriminate>:" << std::endl;
+  //std::cout << " nCharged = " << tau->signalTauChargedHadronCandidates().size() << std::endl;
+  //std::cout << " nPiZeros = " << tau->signalPiZeroCandidates().size() << std::endl;
 
   // Check if we pass the min pt
-  if (tau->pt() < minPt_)
+  if ( tau->pt() < minPt_ ) {
     return 0.0;
+  }
 
   // See if we select this decay mode
   DecayModeCutMap::const_iterator massWindowIter =
       decayModeCuts_.find(std::make_pair(tau->signalTauChargedHadronCandidates().size(),
                                          tau->signalPiZeroCandidates().size()));
   // Check if decay mode is supported
-  if (massWindowIter == decayModeCuts_.end()) {
+  if ( massWindowIter == decayModeCuts_.end() ) {
     return 0.0;
   }
   const DecayModeCuts& massWindow = massWindowIter->second;
+  //std::cout << "nTracksMin = " << massWindow.nTracksMin_ << std::endl;
 
   if ( massWindow.nTracksMin_ > 0 ) {
     unsigned int nTracks = 0;
@@ -131,6 +135,7 @@ PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau)
 	++nTracks;
       }
     }
+    //std::cout << "nTracks = " << nTracks << std::endl;
     if ( nTracks < massWindow.nTracksMin_ ) {
       return 0.0;
     }
@@ -181,10 +186,10 @@ PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau)
   // Check if tau passes cone cut
   double cone_size = signalConeFun_(*tau);
   // Check if any charged objects fail the signal cone cut
-  BOOST_FOREACH(const reco::PFCandidatePtr& cand,
-                tau->signalPFChargedHadrCands()) {
-    //std::cout << "dR(tau, signalPFChargedHadr) = " << deltaR(cand->p4(), tauP4) << std::endl;
-    if ( deltaR(cand->p4(), tauP4) > cone_size )
+  BOOST_FOREACH(const reco::PFRecoTauChargedHadron& cand,
+                tau->signalTauChargedHadronCandidates()) {
+    //std::cout << "dR(tau, signalPFChargedHadr) = " << deltaR(cand.p4(), tauP4) << std::endl;
+    if ( deltaR(cand.p4(), tauP4) > cone_size )
       return 0.0;
   }
   // Now check the pizeros

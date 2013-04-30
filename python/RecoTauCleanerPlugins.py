@@ -56,6 +56,16 @@ pt = cms.PSet(
     # Require that cones were built by ensuring the a leadCand exits
     selection = cms.string("leadPFCand().isNonnull()"),
     selectionPassFunction = cms.string("-pt()"), # CV: negative sign means that we prefer candidates of high pT
+    selectionFailValue = cms.double(1e3),
+    tolerance = cms.double(1.e-2) # CV: consider candidates with almost equal pT to be of the same rank (to avoid sensitivity to rounding errors)
+)
+
+stripMultiplicity = cms.PSet(
+    name = cms.string("StripMultiplicity"),
+    plugin = cms.string("RecoTauStringCleanerPlugin"),
+    # Require that cones were built by ensuring the a leadCand exits
+    selection = cms.string("leadPFCand().isNonnull()"),
+    selectionPassFunction = cms.string("signalPiZeroCandidates().size()"),
     selectionFailValue = cms.double(1e3)
 )
 
@@ -64,8 +74,7 @@ combinedIsolation = cms.PSet(
     plugin = cms.string("RecoTauStringCleanerPlugin"),
     # Require that cones were built by ensuring the a leadCand exits
     selection = cms.string("leadPFCand().isNonnull()"),
-    selectionPassFunction = cms.string(
-        "isolationPFChargedHadrCandsPtSum()+isolationPFGammaCandsEtSum()"),
+    selectionPassFunction = cms.string("isolationPFChargedHadrCandsPtSum() + isolationPFGammaCandsEtSum()"),
     selectionFailValue = cms.double(1e3)
 )
 
