@@ -31,6 +31,10 @@
 
 #include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
+#include "DataFormats/TauReco/interface/PFRecoTauChargedHadron.h"
+#include "DataFormats/TauReco/interface/RecoTauPiZero.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 
 #include "CommonTools/Utils/interface/StringCutObjectSelector.h"
 
@@ -158,6 +162,28 @@ namespace
       assert(tauRef_.key() == idx_);
       std::cout << " Pt = " << tauRef_->pt() << ", eta = " << tauRef_->eta() << ", phi = " << tauRef_->phi() << ", mass = " << tauRef_->mass() << " (decayMode = " << tauRef_->decayMode() << ")";
       std::cout << std::endl;
+      const std::vector<reco::PFRecoTauChargedHadron>& signalTauChargedHadronCandidates = tauRef_->signalTauChargedHadronCandidates();
+      size_t numChargedHadrons = signalTauChargedHadronCandidates.size();
+      for ( size_t iChargedHadron = 0; iChargedHadron < numChargedHadrons; ++iChargedHadron ) {
+	const reco::PFRecoTauChargedHadron& chargedHadron = signalTauChargedHadronCandidates.at(iChargedHadron);
+	std::cout << " chargedHadron #" << iChargedHadron << ":" << std::endl;
+	chargedHadron.print(std::cout);
+      }
+      const std::vector<reco::RecoTauPiZero>& signalPiZeroCandidates = tauRef_->signalPiZeroCandidates();
+      size_t numPiZeros = signalPiZeroCandidates.size();
+      std::cout << "signalPiZeroCandidates = " << numPiZeros << std::endl;
+      for ( size_t iPiZero = 0; iPiZero < numPiZeros; ++iPiZero ) {
+	const reco::RecoTauPiZero& piZero = signalPiZeroCandidates.at(iPiZero);
+	std::cout << " piZero #" << iPiZero << ": Pt = " << piZero.pt() << ", eta = " << piZero.eta() << ", phi = " << piZero.phi() << ", mass = " << piZero.mass() << std::endl;
+      }
+      const std::vector<reco::PFCandidatePtr>& isolationPFCands = tauRef_->isolationPFCands();
+      size_t numPFCands = isolationPFCands.size();
+      std::cout << "isolationPFCands = " << numPFCands << std::endl;
+      for ( size_t iPFCand = 0; iPFCand < numPFCands; ++iPFCand ) {
+	const reco::PFCandidatePtr& pfCand = isolationPFCands.at(iPFCand);
+	std::cout << " pfCand #" << iPFCand << " (" << pfCand.id() << ":" << pfCand.key() << "):" 
+		  << " Pt = " << pfCand->pt() << ", eta = " << pfCand->eta() << ", phi = " << pfCand->phi() << std::endl;
+      }
       std::cout << " ranks = " << format_vT(ranks_) << std::endl;
       std::cout << " tolerances = " << format_vT(tolerances_) << std::endl;
     }

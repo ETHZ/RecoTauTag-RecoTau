@@ -87,18 +87,18 @@ namespace xclean
 { 
   // define template specialization for cross-cleaning
   template<>
-  inline void CrossCleanPiZeros<cone::PFCandPtrDRFilterIter>::initialize(cone::PFCandPtrDRFilterIter signalTracksBegin, cone::PFCandPtrDRFilterIter signalTracksEnd) 
+  inline void CrossCleanPiZeros<cone::PFCandPtrDRFilterIter>::initialize(const cone::PFCandPtrDRFilterIter& signalTracksBegin, const cone::PFCandPtrDRFilterIter& signalTracksEnd) 
   {
     // Get the list of objects we need to clean
-    for ( cone::PFCandPtrDRFilterIter i = signalTracksBegin; i != signalTracksEnd; ++i ) {
-      toRemove_.insert(reco::CandidatePtr(*i));
+    for ( cone::PFCandPtrDRFilterIter signalTrack = signalTracksBegin; signalTrack != signalTracksEnd; ++signalTrack ) {
+      toRemove_.insert(reco::CandidatePtr(*signalTrack));
     }
   }
   
   template<>
-  inline void CrossCleanPtrs<PiZeroList>::initialize(const PiZeroList& piZeros) 
+  inline void CrossCleanPtrs<PiZeroList::const_iterator>::initialize(const PiZeroList::const_iterator& piZerosBegin, const PiZeroList::const_iterator& piZerosEnd) 
   {
-    BOOST_FOREACH( const PFCandidatePtr &ptr, flattenPiZeros(piZeros) ) {
+    BOOST_FOREACH( const PFCandidatePtr &ptr, flattenPiZeros(piZerosBegin, piZerosEnd) ) {
       toRemove_.insert(CandidatePtr(ptr));
     }
   }
@@ -251,13 +251,13 @@ RecoTauBuilderConePlugin::return_type RecoTauBuilderConePlugin::operator()(
       signalConePFCHFilter, pfchs.end(), pfchs.end());
 
   // Cross clean pi zero content using signal cone charged hadron constituents.
-  xclean::CrossCleanPiZeros<PFCandPtrDRFilterIter> xCleaner(
+  xclean::CrossCleanPiZeros<PFCandPtrDRFilterIter> piZeroXCleaner(
       signalPFCHs_begin, signalPFCHs_end);
-  std::vector<reco::RecoTauPiZero> cleanPiZeros = xCleaner(piZeros);
+  std::vector<reco::RecoTauPiZero> cleanPiZeros = piZeroXCleaner(piZeros);
 
   // For the rest of the constituents, we need to filter any constituents that
   // are already contained in the pizeros (i.e. electrons)
-  xclean::CrossCleanPtrs<PiZeroList> pfCandXCleaner(cleanPiZeros);
+  xclean::CrossCleanPtrs<PiZeroList::const_iterator> pfCandXCleaner(cleanPiZeros.begin(), cleanPiZeros.end());
 
   // Build signal charged hadrons
   tau.addPFCands(RecoTauConstructor::kSignal,

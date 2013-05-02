@@ -18,12 +18,13 @@ class CrossCleanPiZeros
  public:
   typedef std::vector<RecoTauPiZero> PiZeroList;
 
-  CrossCleanPiZeros(PtrIter signalTracksBegin, PtrIter signalTracksEnd) 
+  CrossCleanPiZeros(const PtrIter& chargedHadronsBegin, const PtrIter& chargedHadronsEnd, int mode = kRemoveChargedAndNeutralDaughterOverlaps) 
+    : mode_(mode)
   {
-    initialize(signalTracksBegin, signalTracksEnd);
+    initialize(chargedHadronsBegin, chargedHadronsEnd);
   }
 
-  void initialize(PtrIter signalTracksBegin, PtrIter signalTracksEnd)
+  void initialize(const PtrIter& chargedHadronsBegin, const PtrIter& chargedHadronsEnd)
   {
     // CV: make sure this never gets called.
     assert(0);
@@ -32,7 +33,7 @@ class CrossCleanPiZeros
   /// Return a vector of pointers to pizeros.  PiZeros that needed cleaning
   /// are cloned, modified, and owned by this class.  The un-modified pointers
   /// point to objects in the [input] vector.
-  PiZeroList operator()(const std::vector<RecoTauPiZero> &input) const 
+  PiZeroList operator()(const std::vector<RecoTauPiZero>& input) const 
   {
     PiZeroList output;
     output.reserve(input.size());
@@ -42,7 +43,7 @@ class CrossCleanPiZeros
       std::vector<reco::CandidatePtr> cleanDaughters;
       std::set_difference(toCheck.begin(), toCheck.end(), toRemove_.begin(), toRemove_.end(), std::back_inserter(cleanDaughters));
       if ( cleanDaughters.size() == daughters.size() ) {
-	// We don't need to clean anything, just add a pointer to current cnad
+	// We don't need to clean anything, just add a pointer to current pizero
 	output.push_back(piZero);
       } else {
 	// Otherwise rebuild
@@ -63,22 +64,25 @@ class CrossCleanPiZeros
     return output;
   }
 
+  enum { kRemoveChargedDaughterOverlaps, kRemoveChargedAndNeutralDaughterOverlaps };
+ 
  private:
+  int mode_;
   AddFourMomenta p4Builder_;
   std::set<reco::CandidatePtr> toRemove_;
 };
 
 // Determine if a candidate is contained in a collection of charged hadrons or pizeros.
-template<typename ParticleList>
+template<typename PtrIter>
 class CrossCleanPtrs 
 {
  public:
-  CrossCleanPtrs(const ParticleList& particles)
+  CrossCleanPtrs(const PtrIter& particlesBegin, const PtrIter& particlesEnd)
   {
-    initialize(particles);
+    initialize(particlesBegin, particlesEnd);
   }
 
-  void initialize(const ParticleList&)
+  void initialize(const PtrIter& particlesBegin, const PtrIter& particlesEnd)
   {
     // CV: make sure this never gets called.
     assert(0);
@@ -118,7 +122,7 @@ class PredicateAND {
 
     template<typename AnyPtr>
     bool operator() (const AnyPtr& ptr) const {
-      return p1_(ptr) && p2_(ptr);
+      return (p1_(ptr) && p2_(ptr));
     }
   private:
     const P1& p1_;

@@ -65,7 +65,7 @@ stripMultiplicity = cms.PSet(
     plugin = cms.string("RecoTauStringCleanerPlugin"),
     # Require that cones were built by ensuring the a leadCand exits
     selection = cms.string("leadPFCand().isNonnull()"),
-    selectionPassFunction = cms.string("signalPiZeroCandidates().size()"),
+    selectionPassFunction = cms.string("-signalPiZeroCandidates().size()"),
     selectionFailValue = cms.double(1e3)
 )
 

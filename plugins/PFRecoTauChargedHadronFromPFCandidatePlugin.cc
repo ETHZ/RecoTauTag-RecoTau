@@ -56,10 +56,16 @@ class PFRecoTauChargedHadronFromPFCandidatePlugin : public PFRecoTauChargedHadro
 
   std::vector<int> inputPdgIds_;  // type of candidates to clusterize
 
-  double dRmergeNeutralHadron_;
+  double dRmergeNeutralHadronWrtChargedHadron_;
+  double dRmergeNeutralHadronWrtNeutralHadron_;
+  double dRmergeNeutralHadronWrtElectron_;
+  double dRmergeNeutralHadronWrtOther_;
   int minBlockElementMatchesNeutralHadron_;
   int maxUnmatchedBlockElementsNeutralHadron_;
-  double dRmergePhoton_;
+  double dRmergePhotonWrtChargedHadron_;
+  double dRmergePhotonWrtNeutralHadron_;
+  double dRmergePhotonWrtElectron_;
+  double dRmergePhotonWrtOther_;
   int minBlockElementMatchesPhoton_;
   int maxUnmatchedBlockElementsPhoton_;
 
@@ -76,10 +82,16 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::PFRecoTauChargedHadronFromPFCandida
 
   inputPdgIds_ = pset.getParameter<std::vector<int> >("chargedHadronCandidatesParticleIds");
 
-  dRmergeNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadron");
+  dRmergeNeutralHadronWrtChargedHadron_ = pset.getParameter<double>("dRmergeNeutralHadronWrtChargedHadron");
+  dRmergeNeutralHadronWrtNeutralHadron_ = pset.getParameter<double>("dRmergeNeutralHadronWrtNeutralHadron");
+  dRmergeNeutralHadronWrtElectron_ = pset.getParameter<double>("dRmergeNeutralHadronWrtElectron");
+  dRmergeNeutralHadronWrtOther_ = pset.getParameter<double>("dRmergeNeutralHadronWrtOther");
   minBlockElementMatchesNeutralHadron_ = pset.getParameter<int>("minBlockElementMatchesNeutralHadron");
   maxUnmatchedBlockElementsNeutralHadron_ = pset.getParameter<int>("maxUnmatchedBlockElementsNeutralHadron");
-  dRmergePhoton_ = pset.getParameter<double>("dRmergePhoton");
+  dRmergePhotonWrtChargedHadron_ = pset.getParameter<double>("dRmergePhotonWrtChargedHadron");
+  dRmergePhotonWrtNeutralHadron_ = pset.getParameter<double>("dRmergePhotonWrtNeutralHadron");
+  dRmergePhotonWrtElectron_ = pset.getParameter<double>("dRmergePhotonWrtElectron");
+  dRmergePhotonWrtOther_ = pset.getParameter<double>("dRmergePhotonWrtOther");
   minBlockElementMatchesPhoton_ = pset.getParameter<int>("minBlockElementMatchesPhoton");
   maxUnmatchedBlockElementsPhoton_ = pset.getParameter<int>("maxUnmatchedBlockElementsPhoton");
 
@@ -175,6 +187,8 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
 
     chargedHadron->positionAtECALEntrance_ = (*cand)->positionAtECALEntrance();
 
+    reco::PFCandidate::ParticleType chargedPFCandidateType = chargedHadron->chargedPFCandidate_->particleId();
+
     std::vector<reco::PFCandidatePtr> jetConstituents = jet.getPFConstituents();
     for ( std::vector<reco::PFCandidatePtr>::const_iterator jetConstituent = jetConstituents.begin();
 	  jetConstituent != jetConstituents.end(); ++jetConstituent ) {
@@ -188,12 +202,18 @@ PFRecoTauChargedHadronFromPFCandidatePlugin::return_type PFRecoTauChargedHadronF
       double dRmerge = -1.;      
       int minBlockElementMatches = 1000;
       int maxUnmatchedBlockElements = 0;
-      if ( jetConstituentType == reco::PFCandidate::h0    ) {
-	dRmerge = dRmergeNeutralHadron_;
+      if ( jetConstituentType == reco::PFCandidate::h0 ) {
+	if      ( chargedPFCandidateType == reco::PFCandidate::h  ) dRmerge = dRmergeNeutralHadronWrtChargedHadron_;
+	else if ( chargedPFCandidateType == reco::PFCandidate::h0 ) dRmerge = dRmergeNeutralHadronWrtNeutralHadron_;
+	else if ( chargedPFCandidateType == reco::PFCandidate::e  ) dRmerge = dRmergeNeutralHadronWrtElectron_;
+	else                                                        dRmerge = dRmergeNeutralHadronWrtOther_;
 	minBlockElementMatches = minBlockElementMatchesNeutralHadron_;
 	maxUnmatchedBlockElements = maxUnmatchedBlockElementsNeutralHadron_;
       } else if ( jetConstituentType == reco::PFCandidate::gamma ) {
-	dRmerge = dRmergePhoton_;
+	if      ( chargedPFCandidateType == reco::PFCandidate::h  ) dRmerge = dRmergePhotonWrtChargedHadron_;
+	else if ( chargedPFCandidateType == reco::PFCandidate::h0 ) dRmerge = dRmergePhotonWrtNeutralHadron_;
+	else if ( chargedPFCandidateType == reco::PFCandidate::e  ) dRmerge = dRmergePhotonWrtElectron_;
+	else                                                        dRmerge = dRmergePhotonWrtOther_;
 	minBlockElementMatches = minBlockElementMatchesPhoton_;
 	maxUnmatchedBlockElements = maxUnmatchedBlockElementsPhoton_;
       }
