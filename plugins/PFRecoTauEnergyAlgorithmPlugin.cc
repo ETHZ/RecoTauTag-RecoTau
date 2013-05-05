@@ -95,6 +95,7 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 {
   if ( verbosity_ ) {
     std::cout << "<PFRecoTauEnergyAlgorithmPlugin::operator()>:" << std::endl;
+    std::cout << "tau: Pt = " << tau.pt() << ", eta = " << tau.eta() << ", phi = " << tau.phi() << " (En = " << tau.energy() << ", decayMode = " << tau.decayMode() << ")" << std::endl;
   }
 
   // Add high Pt PFNeutralHadrons and PFGammas that are not "used" by tau decay mode object
@@ -124,30 +125,35 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
       addNeutralsSumP4 += (*jetConstituent)->p4();
     }
   }
+  if ( verbosity_ ) {
+    std::cout << "addNeutralsSumP4: En = " << addNeutralsSumP4.energy() << std::endl;
+  }
   
-  unsigned numChargedHadronTracks = 0;
-  double chargedHadronTracksSumP = 0.;
-  double chargedHadronTracksSumPerr2 = 0.;
-  const std::vector<PFRecoTauChargedHadron> chargedHadrons = tau.signalTauChargedHadronCandidates();
+  unsigned numNonPFCandTracks = 0;
+  double nonPFCandTracksSumP = 0.;
+  double nonPFCandTracksSumPerr2 = 0.;
+  const std::vector<PFRecoTauChargedHadron>& chargedHadrons = tau.signalTauChargedHadronCandidates();
   for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
 	chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
     if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
-      ++numChargedHadronTracks;
+      ++numNonPFCandTracks;
       const edm::Ptr<Track>& chargedHadronTrack = chargedHadron->getTrack();
-      chargedHadronTracksSumP += chargedHadronTrack->p();
-      chargedHadronTracksSumPerr2 += getTrackPerr2(*chargedHadronTrack);
+      nonPFCandTracksSumP += chargedHadronTrack->p();
+      nonPFCandTracksSumPerr2 += getTrackPerr2(*chargedHadronTrack);
     }
   }
   if ( verbosity_ ) {
-    std::cout << "numChargedHadronTracks = " << numChargedHadronTracks 
-	      << " (chargedHadronTracksSumP = " << chargedHadronTracksSumP << " +/- " << sqrt(chargedHadronTracksSumPerr2) << ")" << std::endl;
-    std::cout << "addNeutralsSumP4: En = " << addNeutralsSumP4.energy() << std::endl;
+    std::cout << "nonPFCandTracksSumP = " << nonPFCandTracksSumP << " +/- " << sqrt(nonPFCandTracksSumPerr2) 
+	      << " (numNonPFCandTracks = " << numNonPFCandTracks << ")" << std::endl;
   }
  
-  if ( numChargedHadronTracks == 0 ) {
+  if ( numNonPFCandTracks == 0 ) {
     // This is the easy case: 
     // All tau energy is taken from PFCandidates reconstructed by PFlow algorithm
     // and there is no issue with double-counting of energy.
+    if ( verbosity_ ) {
+      std::cout << "easy case: all tracks are associated to PFCandidates --> leaving tau momentum untouched." << std::endl;
+    }
     updateTauP4(tau, 1., addNeutralsSumP4);
     return;
   } else {
@@ -157,9 +163,12 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
     
     // Check if we have enough energy in collection of PFNeutralHadrons and PFGammas that are not "used" by tau decay mode object
     // to balance track momenta:
-    if ( chargedHadronTracksSumP < addNeutralsSumP4.energy() ) {
-      double scaleFactor = 1. - chargedHadronTracksSumP/addNeutralsSumP4.energy();
+    if ( nonPFCandTracksSumP < addNeutralsSumP4.energy() ) {
+      double scaleFactor = 1. - nonPFCandTracksSumP/addNeutralsSumP4.energy();
       assert(scaleFactor >= 0. && scaleFactor <= 1.);
+      if ( verbosity_ ) {
+	std::cout << "case (2): addNeutralsSumEn > nonPFCandTracksSumP --> adjusting tau momentum." << std::endl;
+      }
       updateTauP4(tau, scaleFactor, addNeutralsSumP4);
       return;
     }
@@ -170,11 +179,13 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
     reco::Candidate::LorentzVector mergedNeutralsSumP4;
     for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
 	  chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
-      const std::vector<reco::PFCandidatePtr>& neutralPFCands = chargedHadron->getNeutralPFCandidates();
-      for ( std::vector<reco::PFCandidatePtr>::const_iterator neutralPFCand = neutralPFCands.begin();
-	    neutralPFCand != neutralPFCands.end(); ++neutralPFCand ) {
-	mergedNeutrals.push_back(*neutralPFCand);
-	mergedNeutralsSumP4 += (*neutralPFCand)->p4();
+      if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
+	const std::vector<reco::PFCandidatePtr>& neutralPFCands = chargedHadron->getNeutralPFCandidates();
+	for ( std::vector<reco::PFCandidatePtr>::const_iterator neutralPFCand = neutralPFCands.begin();
+	      neutralPFCand != neutralPFCands.end(); ++neutralPFCand ) {
+	  mergedNeutrals.push_back(*neutralPFCand);
+	  mergedNeutralsSumP4 += (*neutralPFCand)->p4();
+	}
       }
     }
     if ( verbosity_ ) {
@@ -183,17 +194,22 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 
     // Check if track momenta are balanced by sum of PFNeutralHadrons and PFGammas that are not "used" by tau decay mode object
     // plus neutral PFCandidates close to PFChargedHadrons:
-    if ( chargedHadronTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) ) {
-      double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) - chargedHadronTracksSumP)/mergedNeutralsSumP4.energy();
+    if ( nonPFCandTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) ) {
+      double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy()) - nonPFCandTracksSumP)/mergedNeutralsSumP4.energy();
       assert(scaleFactor >= 0. && scaleFactor <= 1.);
       reco::Candidate::LorentzVector diffP4;
-      for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
-	    chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
-	if ( chargedHadron->getNeutralPFCandidates().size() >= 1 ) {
-	  const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
-	  setChargedHadronP4(*(const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified)), scaleFactor);
-	  diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
+      size_t numChargedHadrons = chargedHadrons.size();
+      for ( size_t iChargedHadron = 0; iChargedHadron < numChargedHadrons; ++iChargedHadron ) {
+	const PFRecoTauChargedHadron& chargedHadron = chargedHadrons.at(iChargedHadron);
+	if ( chargedHadron.getNeutralPFCandidates().size() >= 1 ) {
+	  PFRecoTauChargedHadron chargedHadron_modified = chargedHadron;
+	  setChargedHadronP4(chargedHadron_modified, scaleFactor);
+	  tau.signalTauChargedHadronCandidates_[iChargedHadron] = chargedHadron_modified;
+	  diffP4 += (chargedHadron.p4() - chargedHadron_modified.p4());
 	}
+      }
+      if ( verbosity_ ) {
+	std::cout << "case (3): (addNeutralsSumEn + mergedNeutralsSumEn) > nonPFCandTracksSumP --> adjusting tau momentum." << std::endl;
       }
       updateTauP4(tau, -1., diffP4);
       return;
@@ -212,82 +228,150 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
       }
     }
     if ( verbosity_ ) {
-      std::cout << "numChargedHadronNeutrals = " << numChargedHadronNeutrals << std::endl;
-      std::cout << "chargedHadronNeutralsSumP4: En = " << chargedHadronNeutralsSumP4.energy() << std::endl;
+      std::cout << "chargedHadronNeutralsSumP4: En = " << chargedHadronNeutralsSumP4.energy() 
+		<< " (numChargedHadronNeutrals = " << numChargedHadronNeutrals << ")" << std::endl;
     }
     
     // Check if sum of PFNeutralHadrons and PFGammas that are not "used" by tau decay mode object
     // plus neutral PFCandidates close to PFChargedHadrons plus PFNeutralHadrons interpreted as ChargedHadrons with missing track balances track momenta
-    if ( chargedHadronTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) ) {
-      double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) - chargedHadronTracksSumP)/chargedHadronNeutralsSumP4.energy();
+    if ( nonPFCandTracksSumP < (addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) ) {
+      double scaleFactor = ((addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy()) - nonPFCandTracksSumP)/chargedHadronNeutralsSumP4.energy();
       assert(scaleFactor >= 0. && scaleFactor <= 1.);
       reco::Candidate::LorentzVector diffP4;
-      for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
-	    chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
-	 const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
-	(const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->neutralPFCandidates_.clear();
-	if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kPFNeutralHadron) ) {
-	  const PFCandidatePtr& chargedPFCand = chargedHadron->getChargedPFCandidate();
+      size_t numChargedHadrons = chargedHadrons.size();
+      for ( size_t iChargedHadron = 0; iChargedHadron < numChargedHadrons; ++iChargedHadron ) {
+	const PFRecoTauChargedHadron& chargedHadron = chargedHadrons.at(iChargedHadron);
+	if ( chargedHadron.algoIs(PFRecoTauChargedHadron::kPFNeutralHadron) ) {
+	  PFRecoTauChargedHadron chargedHadron_modified = chargedHadron;
+	  chargedHadron_modified.neutralPFCandidates_.clear();
+	  const PFCandidatePtr& chargedPFCand = chargedHadron.getChargedPFCandidate();
 	  double chargedHadronPx_modified = scaleFactor*chargedPFCand->px();
 	  double chargedHadronPy_modified = scaleFactor*chargedPFCand->py();
 	  double chargedHadronPz_modified = scaleFactor*chargedPFCand->pz();	
-	  reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);
-	  (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->setP4(chargedHadronP4_modified);
-	  diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
+	  reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);	  
+	  chargedHadron_modified.setP4(chargedHadronP4_modified);
+	  tau.signalTauChargedHadronCandidates_[iChargedHadron] = chargedHadron_modified;
+	  diffP4 += (chargedHadron.p4() - chargedHadron_modified.p4());
 	}
+      }
+      if ( verbosity_ ) {
+	std::cout << "case (4): (addNeutralsSumEn + mergedNeutralsSumEn + chargedHadronNeutralsSumEn) > nonPFCandTracksSumP --> adjusting momenta of tau and chargedHadrons." << std::endl;
       }
       updateTauP4(tau, -1., diffP4);
       return;
     } else {
-      if ( numChargedHadronNeutrals == 0 ) {
-	// Adjust momenta of ChargedHadrons build from reco::Tracks to match sum of energy deposits in ECAL + HCAL
-	reco::Candidate::LorentzVector diffP4;
-	for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
-	      chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
-	  if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
-	    const PFRecoTauChargedHadron* chargedHadron_modified = &(*chargedHadron);
-	    (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->neutralPFCandidates_.clear();
-	    const edm::Ptr<Track>& track = chargedHadron->getTrack();
-	    double trackP = track->p();
-	    double trackPerr2 = getTrackPerr2(*track);	  
-	    //std::cout << "trackP = " << trackP << " +/- " << sqrt(trackPerr2) << std::endl;
-	    //std::cout << "chargedHadronTracksSumPerr2 = " << chargedHadronTracksSumPerr2 << std::endl;
-	    //std::cout << "trackPerr2 = " << trackPerr2 << std::endl;
-	    //std::cout << "addNeutralsSumP4.energy = " << addNeutralsSumP4.energy() << std::endl;
-	    //std::cout << "mergedNeutralsSumP4.energy = " << mergedNeutralsSumP4.energy() << std::endl;
-	    //std::cout << "chargedHadronNeutralsSumP4.energy = " << chargedHadronNeutralsSumP4.energy() << std::endl;
-	    //std::cout << "chargedHadronTracksSumP = " << chargedHadronTracksSumP << std::endl;	    
-	    // CV: adjust track momenta such that difference beeen (measuredTrackP - adjustedTrackP)/sigmaMeasuredTrackP is minimal
-	    //    (expression derived using Mathematica)
-	    double trackP_modified = 
-              (trackP*(chargedHadronTracksSumPerr2 - trackPerr2) 
-	     + trackPerr2*(addNeutralsSumP4.energy() + mergedNeutralsSumP4.energy() + chargedHadronNeutralsSumP4.energy() - (chargedHadronTracksSumP - trackP)))/
-              chargedHadronTracksSumPerr2;
-	    // CV: trackP_modified may actually become negative in case sum of energy deposits in ECAL + HCAL is small
-	    //     and one of the tracks has a significantly larger momentum uncertainty than the other tracks.
-	    //     In this case set track momentum to small positive value.
-	    if ( trackP_modified < 1.e-1 ) trackP_modified = 1.e-1;
-	    //std::cout << "trackP (modified) = " << trackP_modified << std::endl;
-	    double scaleFactor = trackP_modified/trackP;
-	    assert(scaleFactor >= 0. && scaleFactor <= 1.);
-	    double chargedHadronPx_modified = scaleFactor*track->px();
-	    double chargedHadronPy_modified = scaleFactor*track->py();
-	    double chargedHadronPz_modified = scaleFactor*track->pz();
+      double allTracksSumP = 0.;
+      double allTracksSumPerr2 = 0.;
+      const std::vector<PFRecoTauChargedHadron> chargedHadrons = tau.signalTauChargedHadronCandidates();
+      for ( std::vector<PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
+	    chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
+	if ( chargedHadron->algoIs(PFRecoTauChargedHadron::kChargedPFCandidate) || chargedHadron->algoIs(PFRecoTauChargedHadron::kTrack) ) {
+	  const edm::Ptr<Track>& chargedHadronTrack = chargedHadron->getTrack();
+	  allTracksSumP += chargedHadronTrack->p();
+	  allTracksSumPerr2 += getTrackPerr2(*chargedHadronTrack);
+	}
+      }
+      if ( verbosity_ ) {
+	std::cout << "allTracksSumP = " << allTracksSumP << " +/- " << sqrt(allTracksSumPerr2) << std::endl;
+      }
+      double allNeutralsSumEn = 0.;
+      const std::vector<reco::PFCandidatePtr>& signalPFCands = tau.signalPFCands();
+      for ( std::vector<reco::PFCandidatePtr>::const_iterator signalPFCand = signalPFCands.begin();
+	    signalPFCand != signalPFCands.end(); ++signalPFCand ) {
+	allNeutralsSumEn += ((*signalPFCand)->ecalEnergy() + (*signalPFCand)->hcalEnergy() + (*signalPFCand)->hoEnergy());
+      }
+      allNeutralsSumEn += addNeutralsSumP4.energy();
+      if ( verbosity_ ) {
+	std::cout << "allNeutralsSumEn = " << allNeutralsSumEn << std::endl;
+      }
+      if ( allNeutralsSumEn > allTracksSumP ) {
+	// Adjust momenta of neutral PFCandidates merged into ChargedHadrons
+	size_t numChargedHadrons = chargedHadrons.size();
+	for ( size_t iChargedHadron = 0; iChargedHadron < numChargedHadrons; ++iChargedHadron ) {
+	  const PFRecoTauChargedHadron& chargedHadron = chargedHadrons.at(iChargedHadron);
+	  if ( chargedHadron.algoIs(PFRecoTauChargedHadron::kChargedPFCandidate) ) {
+	    PFRecoTauChargedHadron chargedHadron_modified = chargedHadron;
+	    chargedHadron_modified.neutralPFCandidates_.clear();
+	    chargedHadron_modified.setP4(chargedHadron.getChargedPFCandidate()->p4());
+	    if ( verbosity_ ) {
+	      std::cout << "chargedHadron #" << iChargedHadron << ": changing En = " << chargedHadron.energy() << " to " << chargedHadron_modified.energy() << std::endl;
+	    }
+	    tau.signalTauChargedHadronCandidates_[iChargedHadron] = chargedHadron_modified;
+	  } else if ( chargedHadron.algoIs(PFRecoTauChargedHadron::kTrack) ) {
+	    PFRecoTauChargedHadron chargedHadron_modified = chargedHadron;
+	    chargedHadron_modified.neutralPFCandidates_.clear();
+	    const edm::Ptr<reco::Track>& track = chargedHadron.getTrack();
+	    double chargedHadronPx_modified = track->px();
+	    double chargedHadronPy_modified = track->py();
+	    double chargedHadronPz_modified = track->pz();
 	    reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);
-	    (const_cast<PFRecoTauChargedHadron*>(chargedHadron_modified))->setP4(chargedHadronP4_modified);
-	    diffP4 += (chargedHadron->p4() - chargedHadron_modified->p4());
+	    chargedHadron_modified.setP4(chargedHadronP4_modified);
+	    if ( verbosity_ ) {
+	      std::cout << "chargedHadron #" << iChargedHadron << ": changing En = " << chargedHadron.energy() << " to " << chargedHadron_modified.energy() << std::endl;
+	    }
+	    tau.signalTauChargedHadronCandidates_[iChargedHadron] = chargedHadron_modified;
 	  }
 	}
-	updateTauP4(tau, -1., diffP4);
+	double scaleFactor = allNeutralsSumEn/tau.energy();
+	if ( verbosity_ ) {
+	  std::cout << "case (5): allNeutralsSumEn > allTracksSumP --> adjusting momenta of tau and chargedHadrons." << std::endl;
+	}
+	updateTauP4(tau, scaleFactor - 1., tau.p4());
 	return;
       } else {
-	// Interpretation of PFNeutralHadrons as ChargedHadrons with missing track is not compatible 
-	// with the fact that sum of reco::Track momenta exceeds sum of energy deposits in ECAL + HCAL:
-	// kill tau candidate (by setting its four-vector to zero)
-	reco::Candidate::LorentzVector tauP4_modified(0.,0.,0.,0.);
-	tau.setP4(tauP4_modified);
-	tau.setStatus(-1);
-	return;
+	if ( numChargedHadronNeutrals == 0 && tau.signalPiZeroCandidates().size() == 0 ) {
+	  // Adjust momenta of ChargedHadrons build from reco::Tracks to match sum of energy deposits in ECAL + HCAL + HO
+	  size_t numChargedHadrons = chargedHadrons.size();
+	  for ( size_t iChargedHadron = 0; iChargedHadron < numChargedHadrons; ++iChargedHadron ) {
+	    const PFRecoTauChargedHadron& chargedHadron = chargedHadrons.at(iChargedHadron);
+	    if ( chargedHadron.algoIs(PFRecoTauChargedHadron::kChargedPFCandidate) || chargedHadron.algoIs(PFRecoTauChargedHadron::kTrack) ) {
+	      PFRecoTauChargedHadron chargedHadron_modified = chargedHadron;
+	      chargedHadron_modified.neutralPFCandidates_.clear();
+	      const edm::Ptr<Track>& track = chargedHadron.getTrack();
+	      double trackP = track->p();
+	      double trackPerr2 = getTrackPerr2(*track);	  
+	      // CV: adjust track momenta such that difference beeen (measuredTrackP - adjustedTrackP)/sigmaMeasuredTrackP is minimal
+	      //    (expression derived using Mathematica)
+	      double trackP_modified = 
+                (trackP*(allTracksSumPerr2 - trackPerr2) 
+               + trackPerr2*(allNeutralsSumEn - (allTracksSumP - trackP)))/
+                allTracksSumPerr2;
+	      // CV: trackP_modified may actually become negative in case sum of energy deposits in ECAL + HCAL + HO is small
+	      //     and one of the tracks has a significantly larger momentum uncertainty than the other tracks.
+	      //     In this case set track momentum to small positive value.
+	      if ( trackP_modified < 1.e-1 ) trackP_modified = 1.e-1;
+	      //std::cout << "trackP (modified) = " << trackP_modified << std::endl;
+	      double scaleFactor = trackP_modified/trackP;
+	      assert(scaleFactor >= 0. && scaleFactor <= 1.);
+	      double chargedHadronPx_modified = scaleFactor*track->px();
+	      double chargedHadronPy_modified = scaleFactor*track->py();
+	      double chargedHadronPz_modified = scaleFactor*track->pz();
+	      reco::Candidate::LorentzVector chargedHadronP4_modified = compChargedHadronP4(chargedHadronPx_modified, chargedHadronPy_modified, chargedHadronPz_modified);
+	      chargedHadron_modified.setP4(chargedHadronP4_modified);
+	      if ( verbosity_ ) {
+		std::cout << "chargedHadron #" << iChargedHadron << ": changing En = " << chargedHadron.energy() << " to " << chargedHadron_modified.energy() << std::endl;
+	      }
+	      tau.signalTauChargedHadronCandidates_[iChargedHadron] = chargedHadron_modified;
+	    }
+	  }
+	  double scaleFactor = allNeutralsSumEn/tau.energy();
+	  if ( verbosity_ ) {
+	    std::cout << "case (6): allNeutralsSumEn < allTracksSumP --> adjusting momenta of tau and chargedHadrons." << std::endl;
+	  }
+	  updateTauP4(tau, scaleFactor - 1., tau.p4());
+	  return;
+	} else {
+	  // Interpretation of PFNeutralHadrons as ChargedHadrons with missing track and/or reconstruction of extra PiZeros 
+	  // is not compatible with the fact that sum of reco::Track momenta exceeds sum of energy deposits in ECAL + HCAL + HO:
+	  // kill tau candidate (by setting its four-vector to zero)
+	  reco::Candidate::LorentzVector tauP4_modified(0.,0.,0.,0.);
+	  if ( verbosity_ ) {
+	    std::cout << "case (7): allNeutralsSumEn < allTracksSumP not compatible with tau decay mode hypothesis --> killing tau candidate." << std::endl;
+	  }
+	  tau.setP4(tauP4_modified);
+	  tau.setStatus(-1);
+	  return;
+	}
       }
     }
   }
