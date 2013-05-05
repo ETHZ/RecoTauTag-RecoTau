@@ -14,179 +14,178 @@
  * created : Jul 23 2007,
  * revised : Thu Aug 13 14:44:40 PDT 2009
  * contributors : Ludovic Houchu (IPHC, Strasbourg),
- *               Christian Veelken (UC Davis),
-*                Evan K. Friis (UC Davis)
- *               Michalis Bachtis (UW Madison)
+ *                Christian Veelken (UC Davis),
+ *                Evan K. Friis (UC Davis)
+ *                Michalis Bachtis (UW Madison)
  */
 
 using namespace reco;
 using namespace std;
 
-class PFRecoTauDiscriminationByIsolation :
-  public PFTauDiscriminationProducerBase  {
-  public:
-    explicit PFRecoTauDiscriminationByIsolation(const edm::ParameterSet& pset):
-      PFTauDiscriminationProducerBase(pset),
-      qualityCutsPSet_(pset.getParameter<edm::ParameterSet>("qualityCuts")) {
+class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBase  
+{
+ public:
+  explicit PFRecoTauDiscriminationByIsolation(const edm::ParameterSet& pset)
+    : PFTauDiscriminationProducerBase(pset),
+      qualityCutsPSet_(pset.getParameter<edm::ParameterSet>("qualityCuts")) 
+  {
+    includeTracks_ = pset.getParameter<bool>(
+      "ApplyDiscriminationByTrackerIsolation");
+    includeGammas_ = pset.getParameter<bool>(
+      "ApplyDiscriminationByECALIsolation");
 
-        includeTracks_ = pset.getParameter<bool>(
-            "ApplyDiscriminationByTrackerIsolation");
-        includeGammas_ = pset.getParameter<bool>(
-            "ApplyDiscriminationByECALIsolation");
+    applyOccupancyCut_ = pset.getParameter<bool>("applyOccupancyCut");
+    maximumOccupancy_ = pset.getParameter<uint32_t>("maximumOccupancy");
 
-        applyOccupancyCut_ = pset.getParameter<bool>("applyOccupancyCut");
-        maximumOccupancy_ = pset.getParameter<uint32_t>("maximumOccupancy");
+    applySumPtCut_ = pset.getParameter<bool>("applySumPtCut");
+    maximumSumPt_ = pset.getParameter<double>("maximumSumPtCut");
 
-        applySumPtCut_ = pset.getParameter<bool>("applySumPtCut");
-        maximumSumPt_ = pset.getParameter<double>("maximumSumPtCut");
+    applyRelativeSumPtCut_ = pset.getParameter<bool>(
+      "applyRelativeSumPtCut");
+    maximumRelativeSumPt_ = pset.getParameter<double>(
+      "relativeSumPtCut");
 
-        applyRelativeSumPtCut_ = pset.getParameter<bool>(
-            "applyRelativeSumPtCut");
-        maximumRelativeSumPt_ = pset.getParameter<double>(
-            "relativeSumPtCut");
+    storeRawOccupancy_ = pset.exists("storeRawOccupancy") ?
+      pset.getParameter<bool>("storeRawOccupancy") : false;
+    storeRawSumPt_ = pset.exists("storeRawSumPt") ?
+      pset.getParameter<bool>("storeRawSumPt") : false;
 
-        storeRawOccupancy_ = pset.exists("storeRawOccupancy") ?
-          pset.getParameter<bool>("storeRawOccupancy") : false;
-        storeRawSumPt_ = pset.exists("storeRawSumPt") ?
-          pset.getParameter<bool>("storeRawSumPt") : false;
+    // Sanity check on requested options.  We can't apply cuts and store the
+    // raw output at the same time
+    if ( applySumPtCut_ || applyOccupancyCut_ || applyRelativeSumPtCut_ ) {
+      if ( storeRawSumPt_ || storeRawOccupancy_ ) {
+	throw cms::Exception("BadIsoConfig") 
+	  << "A 'store raw' and a 'apply cut' option have been set to true "
+	  << "simultaneously.  These options are mutually exclusive.";
+      }
+    }
+    
+    // Can only store one type
+    if ( storeRawSumPt_ && storeRawOccupancy_ ) {
+      throw cms::Exception("BadIsoConfig") 
+	<< "Both 'store sum pt' and 'store occupancy' options are set."
+	<< " These options are mutually exclusive.";
+    }
 
-        // Sanity check on requested options.  We can't apply cuts and store the
-        // raw output at the same time
-        if (applySumPtCut_ || applyOccupancyCut_ || applyRelativeSumPtCut_) {
-          if (storeRawSumPt_ || storeRawOccupancy_) {
-            throw cms::Exception("BadIsoConfig") <<
-              "A 'store raw' and a 'apply cut' option have been set to true "
-              << "simultaneously.  These options are mutually exclusive.";
-          }
-        }
+    if ( pset.exists("customOuterCone") ) {
+      customIsoCone_ = pset.getParameter<double>("customOuterCone");
+    } else {
+      customIsoCone_ = -1;
+    }
 
-        // Can only store one type
-        if (storeRawSumPt_ && storeRawOccupancy_) {
-            throw cms::Exception("BadIsoConfig") <<
-              "Both 'store sum pt' and 'store occupancy' options are set."
-              << " These options are mutually exclusive.";
-        }
+    // Get the quality cuts specific to the isolation region
+    edm::ParameterSet isolationQCuts = qualityCutsPSet_.getParameterSet(
+      "isolationQualityCuts");
 
-        if (pset.exists("customOuterCone")) {
-          customIsoCone_ = pset.getParameter<double>("customOuterCone");
-        } else {
-          customIsoCone_ = -1;
-        }
+    qcuts_.reset(new tau::RecoTauQualityCuts(isolationQCuts));
 
-        // Get the quality cuts specific to the isolation region
-        edm::ParameterSet isolationQCuts = qualityCutsPSet_.getParameterSet(
-            "isolationQualityCuts");
+    vertexAssociator_.reset(
+      new tau::RecoTauVertexAssociator(qualityCutsPSet_));
 
-        qcuts_.reset(new tau::RecoTauQualityCuts(isolationQCuts));
+    applyDeltaBeta_ = pset.exists("applyDeltaBetaCorrection") ?
+      pset.getParameter<bool>("applyDeltaBetaCorrection") : false;
 
-        vertexAssociator_.reset(
-            new tau::RecoTauVertexAssociator(qualityCutsPSet_));
+    if ( applyDeltaBeta_ ) {
+      // Factorize the isolation QCuts into those that are used to
+      // select PU and those that are not.
+      std::pair<edm::ParameterSet, edm::ParameterSet> puFactorizedIsoQCuts =
+	reco::tau::factorizePUQCuts(isolationQCuts);
 
-        applyDeltaBeta_ = pset.exists("applyDeltaBetaCorrection") ?
-          pset.getParameter<bool>("applyDeltaBetaCorrection") : false;
-
-        if (applyDeltaBeta_) {
-          // Factorize the isolation QCuts into those that are used to
-          // select PU and those that are not.
-          std::pair<edm::ParameterSet, edm::ParameterSet> puFactorizedIsoQCuts =
-            reco::tau::factorizePUQCuts(isolationQCuts);
-
-          // Determine the pt threshold for the PU tracks
-          // First check if the user specifies explicitly the cut.
-          if (pset.exists("deltaBetaPUTrackPtCutOverride")) {
-            puFactorizedIsoQCuts.second.addParameter<double>(
-                "minTrackPt",
-                pset.getParameter<double>("deltaBetaPUTrackPtCutOverride"));
-          } else {
-            // Secondly take it from the minGammaEt
-            puFactorizedIsoQCuts.second.addParameter<double>(
-                "minTrackPt",
-                isolationQCuts.getParameter<double>("minGammaEt"));
-          }
-
-          pileupQcutsPUTrackSelection_.reset(new tau::RecoTauQualityCuts(
-                puFactorizedIsoQCuts.first));
-
-          pileupQcutsGeneralQCuts_.reset(new tau::RecoTauQualityCuts(
-                puFactorizedIsoQCuts.second));
-
-          pfCandSrc_ = pset.getParameter<edm::InputTag>("particleFlowSrc");
-          vertexSrc_ = pset.getParameter<edm::InputTag>("vertexSrc");
-          deltaBetaCollectionCone_ = pset.getParameter<double>(
-              "isoConeSizeForDeltaBeta");
-          std::string deltaBetaFactorFormula =
-            pset.getParameter<string>("deltaBetaFactor");
-          deltaBetaFormula_.reset(
-              new TFormula("DB_corr", deltaBetaFactorFormula.c_str()));
-        }
-
-        applyRhoCorrection_ = pset.exists("applyRhoCorrection") ?
-          pset.getParameter<bool>("applyRhoCorrection") : false;
-        if (applyRhoCorrection_) {
-          rhoProducer_ = pset.getParameter<edm::InputTag>("rhoProducer");
-          rhoConeSize_ = pset.getParameter<double>("rhoConeSize");
-          rhoUEOffsetCorrection_ =
-            pset.getParameter<double>("rhoUEOffsetCorrection");
-        }
+      // Determine the pt threshold for the PU tracks
+      // First check if the user specifies explicitly the cut.
+      if ( pset.exists("deltaBetaPUTrackPtCutOverride") ) {
+	puFactorizedIsoQCuts.second.addParameter<double>(
+	  "minTrackPt",
+	  pset.getParameter<double>("deltaBetaPUTrackPtCutOverride"));
+      } else {
+	// Secondly take it from the minGammaEt
+	puFactorizedIsoQCuts.second.addParameter<double>(
+          "minTrackPt",
+	  isolationQCuts.getParameter<double>("minGammaEt"));
       }
 
-    ~PFRecoTauDiscriminationByIsolation(){}
+      pileupQcutsPUTrackSelection_.reset(new tau::RecoTauQualityCuts(
+        puFactorizedIsoQCuts.first));
 
-    void beginEvent(const edm::Event& evt, const edm::EventSetup& evtSetup);
-    double discriminate(const PFTauRef& pfTau);
+      pileupQcutsGeneralQCuts_.reset(new tau::RecoTauQualityCuts(
+        puFactorizedIsoQCuts.second));
 
-  private:
-    edm::ParameterSet qualityCutsPSet_;
-    std::auto_ptr<tau::RecoTauQualityCuts> qcuts_;
+      pfCandSrc_ = pset.getParameter<edm::InputTag>("particleFlowSrc");
+      vertexSrc_ = pset.getParameter<edm::InputTag>("vertexSrc");
+      deltaBetaCollectionCone_ = pset.getParameter<double>(
+        "isoConeSizeForDeltaBeta");
+      std::string deltaBetaFactorFormula =
+	pset.getParameter<string>("deltaBetaFactor");
+      deltaBetaFormula_.reset(
+        new TFormula("DB_corr", deltaBetaFactorFormula.c_str()));
+    }
 
-    // Inverted QCut which selects tracks with bad DZ/trackWeight
-    std::auto_ptr<tau::RecoTauQualityCuts> pileupQcutsPUTrackSelection_;
-    std::auto_ptr<tau::RecoTauQualityCuts> pileupQcutsGeneralQCuts_;
+    applyRhoCorrection_ = pset.exists("applyRhoCorrection") ?
+      pset.getParameter<bool>("applyRhoCorrection") : false;
+    if ( applyRhoCorrection_ ) {
+      rhoProducer_ = pset.getParameter<edm::InputTag>("rhoProducer");
+      rhoConeSize_ = pset.getParameter<double>("rhoConeSize");
+      rhoUEOffsetCorrection_ =
+	pset.getParameter<double>("rhoUEOffsetCorrection");
+    }
+  }
 
-    std::auto_ptr<tau::RecoTauVertexAssociator> vertexAssociator_;
+  ~PFRecoTauDiscriminationByIsolation(){}
 
-    bool includeTracks_;
-    bool includeGammas_;
-    bool applyOccupancyCut_;
-    uint32_t maximumOccupancy_;
-    bool applySumPtCut_;
-    double maximumSumPt_;
-    bool applyRelativeSumPtCut_;
-    double maximumRelativeSumPt_;
-    double customIsoCone_;
+  void beginEvent(const edm::Event& evt, const edm::EventSetup& evtSetup);
+  double discriminate(const PFTauRef& pfTau);
 
-    // Options to store the raw value in the discriminator instead of
-    // boolean float
-    bool storeRawOccupancy_;
-    bool storeRawSumPt_;
+ private:
+  edm::ParameterSet qualityCutsPSet_;
+  std::auto_ptr<tau::RecoTauQualityCuts> qcuts_;
 
-    /* **********************************************************************
-       **** Pileup Subtraction Parameters ***********************************
-       **********************************************************************/
+  // Inverted QCut which selects tracks with bad DZ/trackWeight
+  std::auto_ptr<tau::RecoTauQualityCuts> pileupQcutsPUTrackSelection_;
+  std::auto_ptr<tau::RecoTauQualityCuts> pileupQcutsGeneralQCuts_;
+  
+  std::auto_ptr<tau::RecoTauVertexAssociator> vertexAssociator_;
+  
+  bool includeTracks_;
+  bool includeGammas_;
+  bool applyOccupancyCut_;
+  uint32_t maximumOccupancy_;
+  bool applySumPtCut_;
+  double maximumSumPt_;
+  bool applyRelativeSumPtCut_;
+  double maximumRelativeSumPt_;
+  double customIsoCone_;
+  
+  // Options to store the raw value in the discriminator instead of
+  // boolean float
+  bool storeRawOccupancy_;
+  bool storeRawSumPt_;
 
-    // Delta Beta correction
-    bool applyDeltaBeta_;
-    edm::InputTag pfCandSrc_;
-    // Keep track of how many vertices are in the event
-    edm::InputTag vertexSrc_;
-    std::vector<reco::PFCandidatePtr> chargedPFCandidatesInEvent_;
-    // Size of cone used to collect PU tracks
-    double deltaBetaCollectionCone_;
-    std::auto_ptr<TFormula> deltaBetaFormula_;
-    double deltaBetaFactorThisEvent_;
+  /* **********************************************************************
+     **** Pileup Subtraction Parameters ***********************************
+     **********************************************************************/
 
-    // Rho correction
-    bool applyRhoCorrection_;
-    edm::InputTag rhoProducer_;
-    double rhoConeSize_;
-    double rhoUEOffsetCorrection_;
-    double rhoCorrectionThisEvent_;
-    double rhoThisEvent_;
-  };
+  // Delta Beta correction
+  bool applyDeltaBeta_;
+  edm::InputTag pfCandSrc_;
+  // Keep track of how many vertices are in the event
+  edm::InputTag vertexSrc_;
+  std::vector<reco::PFCandidatePtr> chargedPFCandidatesInEvent_;
+  // Size of cone used to collect PU tracks
+  double deltaBetaCollectionCone_;
+  std::auto_ptr<TFormula> deltaBetaFormula_;
+  double deltaBetaFactorThisEvent_;
+  
+  // Rho correction
+  bool applyRhoCorrection_;
+  edm::InputTag rhoProducer_;
+  double rhoConeSize_;
+  double rhoUEOffsetCorrection_;
+  double rhoCorrectionThisEvent_;
+  double rhoThisEvent_;
+};
 
-void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
-    const edm::EventSetup& eventSetup) {
-
+void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event, const edm::EventSetup& eventSetup) 
+{
   // NB: The use of the PV in this context is necessitated by its use in
   // applying quality cuts to the different objects in the isolation cone
   // The vertex associator contains the logic to select the appropriate vertex
@@ -196,15 +195,16 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
   // If we are applying the delta beta correction, we need to get the PF
   // candidates from the event so we can find the PU tracks.
   chargedPFCandidatesInEvent_.clear();
-  if (applyDeltaBeta_) {
+  if ( applyDeltaBeta_ ) {
     // Collect all the PF pile up tracks
     edm::Handle<reco::PFCandidateCollection> pfCandHandle_;
     event.getByLabel(pfCandSrc_, pfCandHandle_);
     chargedPFCandidatesInEvent_.reserve(pfCandHandle_->size());
-    for (size_t i = 0; i < pfCandHandle_->size(); ++i) {
+    for ( size_t i = 0; i < pfCandHandle_->size(); ++i ) {
       reco::PFCandidatePtr pfCand(pfCandHandle_, i);
-      if (pfCand->charge() != 0)
+      if ( pfCand->charge() != 0 ) {
         chargedPFCandidatesInEvent_.push_back(pfCand);
+      }
     }
     // Count all the vertices in the event, to parameterize the DB
     // correction factor
@@ -214,7 +214,7 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
     deltaBetaFactorThisEvent_ = deltaBetaFormula_->Eval(nVtxThisEvent);
   }
 
-  if (applyRhoCorrection_) {
+  if ( applyRhoCorrection_ ) {
     edm::Handle<double> rhoHandle_;
     event.getByLabel(rhoProducer_, rhoHandle_);
     rhoThisEvent_ = (*rhoHandle_ - rhoUEOffsetCorrection_)*
@@ -223,7 +223,8 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event,
 }
 
 double
-PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
+PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) 
+{
   // collect the objects we are working with (ie tracks, tracks+gammas, etc)
   std::vector<PFCandidatePtr> isoCharged;
   std::vector<PFCandidatePtr> isoNeutral;
@@ -249,10 +250,10 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
 
   // Load the tracks if they are being used.
   if ( includeTracks_ ) {
-    BOOST_FOREACH(const reco::PFCandidatePtr& cand,
-        pfTau->isolationPFChargedHadrCands()) {
-      if (qcuts_->filterCandRef(cand))
+    BOOST_FOREACH( const reco::PFCandidatePtr& cand, pfTau->isolationPFChargedHadrCands() ) {
+      if ( qcuts_->filterCandRef(cand) ) {
         isoCharged.push_back(cand);
+      }
     }
   }
   if ( includeGammas_ ) {
@@ -283,7 +284,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     // Only select PU tracks inside the isolation cone.
     DRFilter deltaBetaFilter(pfTau->p4(), 0, deltaBetaCollectionCone_);
     BOOST_FOREACH(const reco::PFCandidatePtr& cand, cleanPU) {
-      if (deltaBetaFilter(cand)) {
+      if ( deltaBetaFilter(cand) ) {
         isoPU.push_back(cand);
       }
     }
@@ -296,10 +297,10 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     std::vector<PFCandidatePtr> isoCharged_filter;
     std::vector<PFCandidatePtr> isoNeutral_filter;
     // Remove all the objects not in our iso cone
-    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoCharged) {
+    BOOST_FOREACH( const PFCandidatePtr& isoObject, isoCharged ) {
       if ( filter(isoObject) ) isoCharged_filter.push_back(isoObject);
     }
-    BOOST_FOREACH(const PFCandidatePtr& isoObject, isoNeutral) {
+    BOOST_FOREACH( const PFCandidatePtr& isoObject, isoNeutral ) {
       if ( filter(isoObject) ) isoNeutral_filter.push_back(isoObject);
     }
 
@@ -319,7 +320,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   if ( applyDeltaBeta_ ) {
     neutrals -= TMath::Nint(deltaBetaFactorThisEvent_*isoPU.size());
   }
-  if(neutrals < 0) {
+  if ( neutrals < 0 ) {
     neutrals = 0;
   }
 
@@ -328,7 +329,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
   failsOccupancyCut = ( nOccupants > maximumOccupancy_ );
 
   double totalPt = 0.0;
-  //--- Sum PT requirement
+//--- Sum PT requirement
   if ( applySumPtCut_ || applyRelativeSumPtCut_ || storeRawSumPt_) {
     double chargedPt = 0.0;
     double puPt = 0.0;
@@ -351,7 +352,7 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
       neutralPt -= rhoThisEvent_;
     }
 
-    if (neutralPt < 0.0) {
+    if ( neutralPt < 0.0 ) {
       neutralPt = 0.0;
     }
 
@@ -359,9 +360,8 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
 
     failsSumPtCut = (totalPt > maximumSumPt_);
 
-    //--- Relative Sum PT requirement
-    failsRelativeSumPtCut = (
-        (pfTau->pt() > 0 ? totalPt/pfTau->pt() : 0 ) > maximumRelativeSumPt_ );
+//--- Relative Sum PT requirement
+    failsRelativeSumPtCut = (totalPt > (pfTau->pt()*maximumRelativeSumPt_));
   }
 
   bool fails = (applyOccupancyCut_ && failsOccupancyCut) ||
@@ -369,9 +369,9 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) {
     (applyRelativeSumPtCut_ && failsRelativeSumPtCut);
 
   // We did error checking in the constructor, so this is safe.
-  if (storeRawSumPt_)
+  if ( storeRawSumPt_ )
     return totalPt;
-  else if (storeRawOccupancy_)
+  else if ( storeRawOccupancy_ )
     return nOccupants;
   else
     return (fails ? 0. : 1.);
