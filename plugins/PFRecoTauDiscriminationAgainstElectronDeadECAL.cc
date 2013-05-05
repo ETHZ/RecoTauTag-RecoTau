@@ -10,9 +10,9 @@
  * \authors Lauri Andreas Wendland,
  *          Christian Veelken
  *
- * \version $Revision: 1.5 $
+ * \version $Revision: 1.1 $
  *
- * $Id: PFRecoTauDiscriminationAgainstElectronDeadECAL.h,v 1.5 2012/04/24 07:21:49 veelken Exp $
+ * $Id: PFRecoTauDiscriminationAgainstElectronDeadECAL.cc,v 1.1 2012/11/22 18:02:15 veelken Exp $
  *
  */
 
@@ -44,6 +44,9 @@ class PFRecoTauDiscriminationAgainstElectronDeadECAL : public PFTauDiscriminatio
   {
     minStatus_ = cfg.getParameter<uint32_t>("minStatus");
     dR_ = cfg.getParameter<double>("dR");
+
+    verbosity_ = ( cfg.exists("verbosity") ) ?
+      cfg.getParameter<int>("verbosity") : 0;
   }
   ~PFRecoTauDiscriminationAgainstElectronDeadECAL() {}
 
@@ -54,15 +57,23 @@ class PFRecoTauDiscriminationAgainstElectronDeadECAL : public PFTauDiscriminatio
 
   double discriminate(const PFTauRef& pfTau)
   {
-    //std::cout << "<PFRecoTauDiscriminationAgainstElectronDeadECAL::discriminate>:" << std::endl;
-    //std::cout << " moduleLabel = " << moduleLabel_ << std::endl;
-    //std::cout << " #badTowers = " << badTowers_.size() << std::endl;
+    if ( verbosity_ ) {
+      std::cout << "<PFRecoTauDiscriminationAgainstElectronDeadECAL::discriminate>:" << std::endl;
+      std::cout << " moduleLabel = " << moduleLabel_ << std::endl;
+      std::cout << "#badTowers = " << badTowers_.size() << std::endl;
+      std::cout << "tau: Pt = " << pfTau->pt() << ", eta = " << pfTau->eta() << ", phi = " << pfTau->phi() << std::endl;
+    }
     double discriminator = 1.;
     for ( std::vector<towerInfo>::const_iterator badTower = badTowers_.begin();
 	  badTower != badTowers_.end(); ++badTower ) {
-      if ( deltaR(badTower->eta_, badTower->phi_, pfTau->eta(), pfTau->phi()) < dR_ ) discriminator = 0.;
+      if ( deltaR(badTower->eta_, badTower->phi_, pfTau->eta(), pfTau->phi()) < dR_ ) {
+	std::cout << " matches badTower: eta = " << badTower->eta_ << ", phi = " << badTower->phi_ << std::endl;
+	discriminator = 0.;
+      }
     }
-    //std::cout << "--> discriminator = " << discriminator << std::endl;
+    if ( verbosity_ ) {
+      std::cout << "--> discriminator = " << discriminator << std::endl;
+    }
     return discriminator;
   }
 
@@ -161,6 +172,8 @@ class PFRecoTauDiscriminationAgainstElectronDeadECAL : public PFTauDiscriminatio
   uint32_t caloGeometryId_cache_;
   uint32_t idealGeometryId_cache_;
   bool isFirstEvent_;
+
+  int verbosity_;
 };
 
 DEFINE_FWK_MODULE(PFRecoTauDiscriminationAgainstElectronDeadECAL);
