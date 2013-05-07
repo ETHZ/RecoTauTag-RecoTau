@@ -10,9 +10,9 @@
  * \authors Lauri Andreas Wendland,
  *          Christian Veelken
  *
- * \version $Revision: 1.1 $
+ * \version $Revision: 1.1.2.1 $
  *
- * $Id: PFRecoTauDiscriminationAgainstElectronDeadECAL.cc,v 1.1 2012/11/22 18:02:15 veelken Exp $
+ * $Id: PFRecoTauDiscriminationAgainstElectronDeadECAL.cc,v 1.1.2.1 2013/05/05 09:28:33 veelken Exp $
  *
  */
 
@@ -67,7 +67,9 @@ class PFRecoTauDiscriminationAgainstElectronDeadECAL : public PFTauDiscriminatio
     for ( std::vector<towerInfo>::const_iterator badTower = badTowers_.begin();
 	  badTower != badTowers_.end(); ++badTower ) {
       if ( deltaR(badTower->eta_, badTower->phi_, pfTau->eta(), pfTau->phi()) < dR_ ) {
-	std::cout << " matches badTower: eta = " << badTower->eta_ << ", phi = " << badTower->phi_ << std::endl;
+	if ( verbosity_ ) {
+	  std::cout << " matches badTower: eta = " << badTower->eta_ << ", phi = " << badTower->phi_ << std::endl;
+	}
 	discriminator = 0.;
       }
     }
