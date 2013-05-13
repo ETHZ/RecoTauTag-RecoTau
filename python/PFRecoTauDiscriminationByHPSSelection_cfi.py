@@ -59,13 +59,6 @@ hpsSelectionDiscriminator = cms.EDProducer(
             nTracksMin = cms.uint32(2),
             minMass = cms.double(0.),
             maxMass = cms.string("1.5")
-        ),
-        cms.PSet(
-            nCharged = cms.uint32(3),
-            nPiZeros = cms.uint32(1),
-            nTracksMin = cms.uint32(2),
-            minMass = cms.double(0.),
-            maxMass = cms.string("max(1.2, min(2.0*sqrt(pt/200.), 4.0))")
         )
     )
 )
