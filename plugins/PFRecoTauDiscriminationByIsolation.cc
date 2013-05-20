@@ -27,6 +27,7 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
  public:
   explicit PFRecoTauDiscriminationByIsolation(const edm::ParameterSet& pset)
     : PFTauDiscriminationProducerBase(pset),
+      moduleLabel_(pset.getParameter<std::string>("@module_label")),
       qualityCutsPSet_(pset.getParameter<edm::ParameterSet>("qualityCuts")) 
   {
     includeTracks_ = pset.getParameter<bool>(
@@ -49,11 +50,13 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
       pset.getParameter<bool>("storeRawOccupancy") : false;
     storeRawSumPt_ = pset.exists("storeRawSumPt") ?
       pset.getParameter<bool>("storeRawSumPt") : false;
+    storeRawPUsumPt_ = pset.exists("storeRawPUsumPt") ?
+      pset.getParameter<bool>("storeRawPUsumPt") : false;
 
     // Sanity check on requested options.  We can't apply cuts and store the
     // raw output at the same time
     if ( applySumPtCut_ || applyOccupancyCut_ || applyRelativeSumPtCut_ ) {
-      if ( storeRawSumPt_ || storeRawOccupancy_ ) {
+      if ( storeRawSumPt_ || storeRawOccupancy_ || storeRawPUsumPt_ ) {
 	throw cms::Exception("BadIsoConfig") 
 	  << "A 'store raw' and a 'apply cut' option have been set to true "
 	  << "simultaneously.  These options are mutually exclusive.";
@@ -61,7 +64,11 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
     }
     
     // Can only store one type
-    if ( storeRawSumPt_ && storeRawOccupancy_ ) {
+    int numStoreOptions = 0;
+    if ( storeRawSumPt_     ) ++numStoreOptions;
+    if ( storeRawOccupancy_ ) ++numStoreOptions;
+    if ( storeRawPUsumPt_   ) ++numStoreOptions;
+    if ( numStoreOptions > 1 ) {
       throw cms::Exception("BadIsoConfig") 
 	<< "Both 'store sum pt' and 'store occupancy' options are set."
 	<< " These options are mutually exclusive.";
@@ -128,6 +135,9 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
       rhoUEOffsetCorrection_ =
 	pset.getParameter<double>("rhoUEOffsetCorrection");
     }
+
+    verbosity_ = ( pset.exists("verbosity") ) ?
+      pset.getParameter<int>("verbosity") : 0;
   }
 
   ~PFRecoTauDiscriminationByIsolation(){}
@@ -136,6 +146,8 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
   double discriminate(const PFTauRef& pfTau);
 
  private:
+  std::string moduleLabel_;
+
   edm::ParameterSet qualityCutsPSet_;
   std::auto_ptr<tau::RecoTauQualityCuts> qcuts_;
 
@@ -155,10 +167,10 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
   double maximumRelativeSumPt_;
   double customIsoCone_;
   
-  // Options to store the raw value in the discriminator instead of
-  // boolean float
+  // Options to store the raw value in the discriminator instead of boolean pass/fail flag
   bool storeRawOccupancy_;
   bool storeRawSumPt_;
+  bool storeRawPUsumPt_;
 
   /* **********************************************************************
      **** Pileup Subtraction Parameters ***********************************
@@ -182,6 +194,9 @@ class PFRecoTauDiscriminationByIsolation : public PFTauDiscriminationProducerBas
   double rhoUEOffsetCorrection_;
   double rhoCorrectionThisEvent_;
   double rhoThisEvent_;
+
+  // Flag to enable/disable debug output
+  int verbosity_;
 };
 
 void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event, const edm::EventSetup& eventSetup) 
@@ -225,6 +240,11 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event, con
 double
 PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) 
 {
+  //if ( verbosity_ ) {
+  //  std::cout << "<PFRecoTauDiscriminationByIsolation::discriminate>:" << std::endl;
+  //  std::cout << " moduleLabel = " << moduleLabel_ << std::endl;
+  //}
+
   // collect the objects we are working with (ie tracks, tracks+gammas, etc)
   std::vector<PFCandidatePtr> isoCharged;
   std::vector<PFCandidatePtr> isoNeutral;
@@ -258,8 +278,9 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
   }
   if ( includeGammas_ ) {
     BOOST_FOREACH( const reco::PFCandidatePtr& cand, pfTau->isolationPFGammaCands() ) {
-      if ( qcuts_->filterCandRef(cand) )
+      if ( qcuts_->filterCandRef(cand) ) {
         isoNeutral.push_back(cand);
+      }
     }
   }
 
@@ -268,18 +289,23 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
   // If desired, get PU tracks.
   if ( applyDeltaBeta_ ) {
     // First select by inverted the DZ/track weight cuts. True = invert
-    //std::cout << "Initial PFCands: " << chargedPFCandidatesInEvent_.size()
-    //  << std::endl;
+    //if ( verbosity_ ) {
+    //  std::cout << "Initial PFCands: " << chargedPFCandidatesInEvent_.size() << std::endl;
+    //}
 
     std::vector<PFCandidatePtr> allPU =
       pileupQcutsPUTrackSelection_->filterCandRefs(
           chargedPFCandidatesInEvent_, true);
-    //std::cout << "After track cuts: " << allPU.size() << std::endl;
+    //if ( verbosity_ ) {
+    //  std::cout << "After track cuts: " << allPU.size() << std::endl;
+    //}
 
     // Now apply the rest of the cuts, like pt, and TIP, tracker hits, etc
     std::vector<PFCandidatePtr> cleanPU =
       pileupQcutsGeneralQCuts_->filterCandRefs(allPU);
-    //std::cout << "After cleaning cuts: " << cleanPU.size() << std::endl;
+    //if ( verbosity_ ) {
+    //  std::cout << "After cleaning cuts: " << cleanPU.size() << std::endl;
+    //}
 
     // Only select PU tracks inside the isolation cone.
     DRFilter deltaBetaFilter(pfTau->p4(), 0, deltaBetaCollectionCone_);
@@ -288,7 +314,9 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
         isoPU.push_back(cand);
       }
     }
-    //std::cout << "After cone cuts: " << isoPU.size() << std::endl;
+    //if ( verbosity_ ) {
+    //  std::cout << "After cone cuts: " << isoPU.size() << std::endl;
+    //}
   }
 
   // Check if we want a custom iso cone
@@ -329,10 +357,10 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
   failsOccupancyCut = ( nOccupants > maximumOccupancy_ );
 
   double totalPt = 0.0;
+  double puPt = 0.0;
 //--- Sum PT requirement
-  if ( applySumPtCut_ || applyRelativeSumPtCut_ || storeRawSumPt_) {
+  if ( applySumPtCut_ || applyRelativeSumPtCut_ || storeRawSumPt_ || storeRawPUsumPt_ ) {
     double chargedPt = 0.0;
-    double puPt = 0.0;
     double neutralPt = 0.0;
     BOOST_FOREACH ( const PFCandidatePtr& isoObject, isoCharged ) {
       chargedPt += isoObject->pt();
@@ -369,12 +397,17 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
     (applyRelativeSumPtCut_ && failsRelativeSumPtCut);
 
   // We did error checking in the constructor, so this is safe.
-  if ( storeRawSumPt_ )
+  if ( storeRawSumPt_ ) {
     return totalPt;
-  else if ( storeRawOccupancy_ )
+  } else if ( storeRawPUsumPt_ ) {
+    if ( applyDeltaBeta_ ) return puPt;
+    else if ( applyRhoCorrection_ ) return rhoThisEvent_;
+    else return 0.;
+  } else if ( storeRawOccupancy_ ) {
     return nOccupants;
-  else
+  } else {
     return (fails ? 0. : 1.);
+  }
 }
 
 DEFINE_FWK_MODULE(PFRecoTauDiscriminationByIsolation);
