@@ -75,6 +75,10 @@ bool trkTransverseImpactParameter(const TrackBaseRef& track, const reco::VertexR
       "RecoTauQualityCuts is invalid. - trkTransverseImpactParameter";
     return false;
   }
+  //std::cout << "<trkTransverseImpactParameter>:" << std::endl;
+  //std::cout << " track: Pt = " << track->pt() << ", eta = " << track->eta() << ", phi = " << track->phi() << std::endl;
+  //std::cout << " vertex: x = " << (*pv)->position().x() << ", y = " << (*pv)->position().y() << ", z = " << (*pv)->position().z() << std::endl;
+  //std::cout << "--> dxy = " << std::fabs(track->dxy((*pv)->position())) << " (cut = " << cut << ")" << std::endl;
   return (std::fabs(track->dxy((*pv)->position())) <= cut);
 }
 

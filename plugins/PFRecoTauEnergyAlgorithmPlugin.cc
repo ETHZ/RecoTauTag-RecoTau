@@ -26,6 +26,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include <vector>
+#include <cmath>
 
 namespace reco { namespace tau {
 
@@ -278,9 +279,20 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
       const std::vector<reco::PFCandidatePtr>& signalPFCands = tau.signalPFCands();
       for ( std::vector<reco::PFCandidatePtr>::const_iterator signalPFCand = signalPFCands.begin();
 	    signalPFCand != signalPFCands.end(); ++signalPFCand ) {
-	allNeutralsSumEn += ((*signalPFCand)->ecalEnergy() + (*signalPFCand)->hcalEnergy() + (*signalPFCand)->hoEnergy());
+	if ( verbosity_ ) {
+	  std::cout << "PFCandidate #" << signalPFCand->id() << ":" << signalPFCand->key() << ":" 
+		    << " Pt = " << (*signalPFCand)->pt() << ", eta = " << (*signalPFCand)->eta() << ", phi = " << (*signalPFCand)->phi() << std::endl;
+	  std::cout << "calorimeter energy:" 
+		    << " ECAL = " << (*signalPFCand)->ecalEnergy() << "," 
+		    << " HCAL = " << (*signalPFCand)->hcalEnergy() << ","
+		    << " HO = " << (*signalPFCand)->hoEnergy() << std::endl;
+	}
+	if ( !std::isnan((*signalPFCand)->ecalEnergy()) ) allNeutralsSumEn += (*signalPFCand)->ecalEnergy();
+	if ( !std::isnan((*signalPFCand)->hcalEnergy()) ) allNeutralsSumEn += (*signalPFCand)->hcalEnergy();
+	if ( !std::isnan((*signalPFCand)->hoEnergy())   ) allNeutralsSumEn += (*signalPFCand)->hoEnergy();
       }
       allNeutralsSumEn += addNeutralsSumP4.energy();
+      if ( allNeutralsSumEn < 0. ) allNeutralsSumEn = 0.;
       if ( verbosity_ ) {
 	std::cout << "allNeutralsSumEn = " << allNeutralsSumEn << std::endl;
       }
@@ -330,6 +342,9 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 	      const edm::Ptr<Track>& track = chargedHadron.getTrack();
 	      double trackP = track->p();
 	      double trackPerr2 = getTrackPerr2(*track);	  
+	      if ( verbosity_ ) {
+		std::cout << "trackP = " << trackP << " +/- " << sqrt(trackPerr2) << std::endl;
+	      }
 	      // CV: adjust track momenta such that difference beeen (measuredTrackP - adjustedTrackP)/sigmaMeasuredTrackP is minimal
 	      //    (expression derived using Mathematica)
 	      double trackP_modified = 
@@ -340,7 +355,9 @@ void PFRecoTauEnergyAlgorithmPlugin::operator()(PFTau& tau) const
 	      //     and one of the tracks has a significantly larger momentum uncertainty than the other tracks.
 	      //     In this case set track momentum to small positive value.
 	      if ( trackP_modified < 1.e-1 ) trackP_modified = 1.e-1;
-	      //std::cout << "trackP (modified) = " << trackP_modified << std::endl;
+	      if ( verbosity_ ) {
+		std::cout << "trackP (modified) = " << trackP_modified << std::endl;
+	      }
 	      double scaleFactor = trackP_modified/trackP;
 	      assert(scaleFactor >= 0. && scaleFactor <= 1.);
 	      double chargedHadronPx_modified = scaleFactor*track->px();

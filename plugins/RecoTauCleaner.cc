@@ -198,10 +198,12 @@ namespace
   {
     //std::cout << "<isHigherRank>:" << std::endl;
     //std::cout << "tau1 @ " << tau1;
-    //tau1->print("");
+    //tau1->print("");    
     //std::cout << "tau2 @ " << tau2;
     //tau2->print("");
-    assert(tau1->N_ == tau2->N_);
+    assert(tau1->N_ == tau1->ranks_.size());
+    assert(tau1->N_ == tau2->ranks_.size());
+    assert(tau1->N_ == tau1->tolerances_.size());
     for ( size_t i = 0; i < tau1->N_; ++i ) {
       const float& val1 = tau1->ranks_[i];
       const float& val2 = tau2->ranks_[i];
@@ -236,8 +238,10 @@ void RecoTauCleanerImpl<Prod>::produce(edm::Event& evt, const edm::EventSetup& e
   size_t N = inputTaus->size();
   for ( size_t idx = 0; idx < N; ++idx ) {
     reco::PFTauRef inputRef(inputTaus, idx);
-    PFTauRankType* rankedTau = new PFTauRankType(inputRef);
-    rankedTau->N_ = N;
+    PFTauRankType* rankedTau = new PFTauRankType(inputRef);    
+    rankedTau->N_ = cleaners_.size();
+    rankedTau->ranks_.reserve(rankedTau->N_);
+    rankedTau->tolerances_.reserve(rankedTau->N_);
     for ( typename CleanerList::const_iterator cleaner = cleaners_.begin();
 	  cleaner != cleaners_.end(); ++cleaner ) {
       rankedTau->ranks_.push_back((*(*cleaner)->plugin_)(inputRef));
