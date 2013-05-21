@@ -36,6 +36,7 @@ class PFRecoTauDiscriminationByHPSSelection
       {}
       ~DecayModeCuts() {} // CV: maxMass object gets deleted by PFRecoTauDiscriminationByHPSSelection destructor
       unsigned nTracksMin_;
+      unsigned nChargedPFCandsMin_;
       double minMass_;
       TauFunc* maxMass_;
       double minPi0Mass_;
@@ -70,6 +71,11 @@ PFRecoTauDiscriminationByHPSSelection::PFRecoTauDiscriminationByHPSSelection(con
       cuts.nTracksMin_ = decayMode.getParameter<unsigned>("nTracksMin");
     } else {
       cuts.nTracksMin_ = 0;
+    }
+    if ( decayMode.exists("nChargedPFCandsMin") ) {
+      cuts.nChargedPFCandsMin_ = decayMode.getParameter<unsigned>("nChargedPFCandsMin");
+    } else {
+      cuts.nChargedPFCandsMin_ = 0;
     }
     cuts.minMass_ = decayMode.getParameter<double>("minMass");
     cuts.maxMass_ = new TauFunc(decayMode.getParameter<std::string>("maxMass"));
@@ -124,8 +130,8 @@ PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau)
     return 0.0;
   }
   const DecayModeCuts& massWindow = massWindowIter->second;
-  //std::cout << "nTracksMin = " << massWindow.nTracksMin_ << std::endl;
 
+  //std::cout << "nTracksMin = " << massWindow.nTracksMin_ << std::endl;
   if ( massWindow.nTracksMin_ > 0 ) {
     unsigned int nTracks = 0;
     const std::vector<reco::PFRecoTauChargedHadron>& chargedHadrons = tau->signalTauChargedHadronCandidates();
@@ -137,6 +143,21 @@ PFRecoTauDiscriminationByHPSSelection::discriminate(const reco::PFTauRef& tau)
     }
     //std::cout << "nTracks = " << nTracks << std::endl;
     if ( nTracks < massWindow.nTracksMin_ ) {
+      return 0.0;
+    }
+  }
+  //std::cout << "nChargedPFCandsMin = " << massWindow.nChargedPFCandsMin_ << std::endl;
+  if ( massWindow.nChargedPFCandsMin_ > 0 ) {
+    unsigned int nChargedPFCands = 0;
+    const std::vector<reco::PFRecoTauChargedHadron>& chargedHadrons = tau->signalTauChargedHadronCandidates();
+    for ( std::vector<reco::PFRecoTauChargedHadron>::const_iterator chargedHadron = chargedHadrons.begin();
+	  chargedHadron != chargedHadrons.end(); ++chargedHadron ) {
+      if ( chargedHadron->algoIs(reco::PFRecoTauChargedHadron::kChargedPFCandidate) ) {
+	++nChargedPFCands;
+      }
+    }
+    //std::cout << "nChargedPFCands = " << nChargedPFCands << std::endl;
+    if ( nChargedPFCands < massWindow.nChargedPFCandsMin_ ) {
       return 0.0;
     }
   }
