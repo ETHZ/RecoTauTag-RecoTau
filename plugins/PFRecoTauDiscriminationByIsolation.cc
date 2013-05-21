@@ -240,10 +240,11 @@ void PFRecoTauDiscriminationByIsolation::beginEvent(const edm::Event& event, con
 double
 PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau) 
 {
-  //if ( verbosity_ ) {
-  //  std::cout << "<PFRecoTauDiscriminationByIsolation::discriminate>:" << std::endl;
-  //  std::cout << " moduleLabel = " << moduleLabel_ << std::endl;
-  //}
+  if ( verbosity_ ) {
+    std::cout << "<PFRecoTauDiscriminationByIsolation::discriminate>:" << std::endl;
+    std::cout << " moduleLabel = " << moduleLabel_ << std::endl;
+    std::cout << " tau: Pt = " << pfTau->pt() << ", eta = " << pfTau->eta() << ", phi = " << pfTau->phi() << std::endl;
+  }
 
   // collect the objects we are working with (ie tracks, tracks+gammas, etc)
   std::vector<PFCandidatePtr> isoCharged;
@@ -254,6 +255,21 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
   reco::VertexRef pv = vertexAssociator_->associatedVertex(*pfTau);
   // Let the quality cuts know which the vertex to use when applying selections
   // on dz, etc.
+  if ( verbosity_ ) {
+    if ( pv.isNonnull() ) {
+      std::cout << "pv: x = " << pv->position().x() << ", y = " << pv->position().y() << ", z = " << pv->position().z() << std::endl;
+    } else {
+      std::cout << "pv: N/A" << std::endl;
+    }
+    if ( pfTau->leadPFChargedHadrCand().isNonnull() ) {
+      std::cout << "leadPFChargedHadron:" 
+		<< " Pt = " << pfTau->leadPFChargedHadrCand()->pt() << "," 
+		<< " eta = " << pfTau->leadPFChargedHadrCand()->eta() << "," 
+		<< " phi = " << pfTau->leadPFChargedHadrCand()->phi() << std::endl;
+    } else {
+      std::cout << "leadPFChargedHadron: N/A" << std::endl; 
+    }
+  }
 
   // CV: isolation is not well defined in case primary vertex or leading charged hadron do not exist
   if ( !(pv.isNonnull() && pfTau->leadPFChargedHadrCand().isNonnull()) ) return 0.;
@@ -371,6 +387,11 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
     BOOST_FOREACH ( const PFCandidatePtr& isoObject, isoPU ) {
       puPt += isoObject->pt();
     }
+    if ( verbosity_ ) {
+      std::cout << "chargedPt = " << chargedPt << std::endl;
+      std::cout << "neutralPt = " << neutralPt << std::endl;
+      std::cout << "puPt = " << puPt << " (delta-beta corr. = " << (deltaBetaFactorThisEvent_*puPt) << ")" << std::endl;
+    }
 
     if ( applyDeltaBeta_ ) {
       neutralPt -= deltaBetaFactorThisEvent_*puPt;
@@ -385,6 +406,9 @@ PFRecoTauDiscriminationByIsolation::discriminate(const PFTauRef& pfTau)
     }
 
     totalPt = chargedPt + neutralPt;
+    if ( verbosity_ ) {
+      std::cout << "totalPt = " << totalPt << " (cut = " << maximumSumPt_ << ")" << std::endl;
+    }
 
     failsSumPtCut = (totalPt > maximumSumPt_);
 
