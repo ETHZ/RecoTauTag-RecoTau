@@ -120,10 +120,7 @@ void PFTauTransverseImpactParameters::produce(edm::Event& iEvent,const edm::Even
 	    cov(i,j)=SV.at(0)->covariance(i,j)+PV->covariance(i,j);
 	  }
 	}
-	reco::PFTauTransverseImpactParameter TIPV(poca,dxy,dxy_err,PV,v,cov,SV.at(0));
-	std::cout << "FlightLength " << TIPV.FlightLength().Mag() << " sig- " << TIPV.FlightLengthSig() << std::endl;
-	std::cout << "Vertex Quality " <<  TIPV.SecondaryVertex()->ndof() << " " << TIPV.SecondaryVertex()->chi2() << " " 
-		  << TMath::Prob(TIPV.SecondaryVertex()->chi2(),TIPV.SecondaryVertex()->ndof()) << std::endl;
+	reco::PFTauTransverseImpactParameter TIPV(poca,dxy,dxy_err,PV,v,SV.at(0));
 	AVPFTauTIP->setValue(iPFTau,TIPV);
       }
       else{
