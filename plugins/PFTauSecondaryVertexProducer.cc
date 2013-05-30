@@ -87,8 +87,8 @@ void PFTauSecondaryVertexProducer::produce(edm::Event& iEvent,const edm::EventSe
 	// Get tracks form PFTau daugthers
 	std::vector<reco::TransientTrack> transTrk;
 	TransientVertex transVtx;
-	const reco::PFCandidateRefVector & cands = RefPFTau->signalPFChargedHadrCands(); 
-	for (reco::PFCandidateRefVector::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
+	const std::vector<edm::Ptr<reco::PFCandidate> > cands = RefPFTau->signalPFChargedHadrCands(); 
+	for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
 	  if(iter->get()->trackRef().isNonnull())transTrk.push_back(transTrackBuilder->build(iter->get()->trackRef()));
 	  else if(iter->get()->gsfTrackRef().isNonnull())transTrk.push_back(transTrackBuilder->build(iter->get()->gsfTrackRef()));
 	}
