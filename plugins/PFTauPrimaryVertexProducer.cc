@@ -1,6 +1,11 @@
 /* class PFTauPrimaryVertexProducer
  * EDProducer of the 
  * authors: Ian M. Nugent
+ * This work is based on the impact parameter work by Rosamaria Venditti and reconstructing the 3 prong taus.
+ * The idea of the fully reconstructing the tau using a kinematic fit comes from
+ * Lars Perchalla and Philip Sauerland Theses under Achim Stahl supervision. This
+ * work was continued by Ian M. Nugent and Vladimir Cherepanov.
+ * Thanks goes to Christian Veelken and Evan Klose Friis for their help and suggestions.
  */
 
 

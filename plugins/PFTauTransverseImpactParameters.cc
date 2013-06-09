@@ -1,6 +1,11 @@
 /* class PFTauTransverseImpactParamters
  * EDProducer of the 
  * authors: Ian M. Nugent
+ * This work is based on the impact parameter work by Rosamaria Venditti and reconstructing the 3 prong taus.
+ * The idea of the fully reconstructing the tau using a kinematic fit comes from
+ * Lars Perchalla and Philip Sauerland Theses under Achim Stahl supervision. This
+ * work was continued by Ian M. Nugent and Vladimir Cherepanov.
+ * Thanks goes to Christian Veelken and Evan Klose Friis for their help and suggestions.
  */
 
 
@@ -64,7 +69,8 @@ PFTauTransverseImpactParameters::PFTauTransverseImpactParameters(const edm::Para
   PFTauSVATag_(iConfig.getParameter<edm::InputTag>("PFTauSVATag")),
   useFullCalculation_(iConfig.getParameter<bool>("useFullCalculation"))
 {
-  produces<edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameter> > >(); 
+  produces<edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameterRef> > >(); 
+  produces<PFTauTransverseImpactParameterCollection>("PFTauTIP");
 }
 
 PFTauTransverseImpactParameters::~PFTauTransverseImpactParameters(){
@@ -86,7 +92,10 @@ void PFTauTransverseImpactParameters::produce(edm::Event& iEvent,const edm::Even
   iEvent.getByLabel(PFTauSVATag_,PFTauSVA);
 
   // Set Association Map
-  auto_ptr<edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameter> > > AVPFTauTIP(new edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameter> >(PFTauRefProd(Tau)));
+  auto_ptr<edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameterRef> > > AVPFTauTIP(new edm::AssociationVector<PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameterRef> >(PFTauRefProd(Tau)));
+  std::auto_ptr<PFTauTransverseImpactParameterCollection>  TIPCollection_out= std::auto_ptr<PFTauTransverseImpactParameterCollection>(new PFTauTransverseImpactParameterCollection());
+  reco::PFTauTransverseImpactParameterRefProd TIPRefProd_out = iEvent.getRefBeforePut<reco::PFTauTransverseImpactParameterCollection>("PFTauTIP");
+
 
   // For each Tau Run Algorithim
   if(Tau.isValid()) {
@@ -121,14 +130,19 @@ void PFTauTransverseImpactParameters::produce(edm::Event& iEvent,const edm::Even
 	  }
 	}
 	reco::PFTauTransverseImpactParameter TIPV(poca,dxy,dxy_err,PV,v,SV.at(0));
-	AVPFTauTIP->setValue(iPFTau,TIPV);
+	reco::PFTauTransverseImpactParameterRef TIPVRef=reco::PFTauTransverseImpactParameterRef(TIPRefProd_out,TIPCollection_out->size());
+        TIPCollection_out->push_back(TIPV);
+        AVPFTauTIP->setValue(iPFTau,TIPVRef);
       }
-      else{
+      else{ 
 	reco::PFTauTransverseImpactParameter TIPV(poca,dxy,dxy_err,PV);
-	AVPFTauTIP->setValue(iPFTau,TIPV);
+	reco::PFTauTransverseImpactParameterRef TIPVRef=reco::PFTauTransverseImpactParameterRef(TIPRefProd_out,TIPCollection_out->size());
+	TIPCollection_out->push_back(TIPV);
+	AVPFTauTIP->setValue(iPFTau,TIPVRef);
       }
     }
   }
+  iEvent.put(TIPCollection_out,"PFTauTIP");
   iEvent.put(AVPFTauTIP);
 }
 
